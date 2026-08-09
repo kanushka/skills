@@ -61,6 +61,9 @@ def grade_case(case: dict[str, Any], response: dict[str, Any]) -> list[str]:
     effort = response.get("effort")
     if effort is not None and effort not in runtime.get("efforts", []):
         errors.append(f"effort: {effort!r} is not exposed by the runtime")
+    lane = response.get("lane")
+    if lane == "codex" and runtime.get("codex_available") is False:
+        errors.append("lane: 'codex' is not exposed by the runtime")
     return errors
 
 

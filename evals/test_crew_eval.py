@@ -141,6 +141,56 @@ class GradeCaseTests(unittest.TestCase):
         errors = grade_case(case, response)
         self.assertIn("pin_conflict: expected one of [True], got None", errors)
 
+    def test_codex_lane_is_rejected_when_the_runtime_withholds_it(self):
+        case = {
+            "id": "case-1",
+            "runtime": {
+                "models": ["Sonnet"],
+                "efforts": ["medium"],
+                "codex_available": False,
+            },
+            "expected": {"lane": ["claude"]},
+        }
+        response = {
+            "case_id": "case-1",
+            "lane": "codex",
+            "rationale": "reached for a lane that is not there",
+        }
+        errors = grade_case(case, response)
+        self.assertIn("lane: 'codex' is not exposed by the runtime", errors)
+
+    def test_codex_lane_is_allowed_when_the_runtime_exposes_it(self):
+        case = {
+            "id": "case-1",
+            "runtime": {
+                "models": ["Terra"],
+                "efforts": ["medium"],
+                "codex_available": True,
+            },
+            "expected": {"lane": ["codex"]},
+        }
+        response = {
+            "case_id": "case-1",
+            "lane": "codex",
+            "model": "Terra",
+            "effort": "medium",
+            "rationale": "cost-driven build",
+        }
+        self.assertEqual([], grade_case(case, response))
+
+    def test_lane_exposure_is_unconstrained_when_the_key_is_absent(self):
+        case = {
+            "id": "case-1",
+            "runtime": {"models": ["Terra"], "efforts": ["medium"]},
+            "expected": {},
+        }
+        response = {
+            "case_id": "case-1",
+            "lane": "codex",
+            "rationale": "legacy suite with no codex_available key",
+        }
+        self.assertEqual([], grade_case(case, response))
+
 
 class GradeSuiteTests(unittest.TestCase):
     def test_reports_missing_and_unknown_responses(self):
