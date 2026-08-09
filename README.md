@@ -1,5 +1,7 @@
 # Crew Selection Skills
 
+[![skills.sh](https://skills.sh/b/kanushka/skills)](https://skills.sh/kanushka/skills)
+
 Provider-specific skills for choosing whether to delegate work, which subagent model and reasoning effort to use, and whether subagents can run in parallel.
 
 ## Skills
