@@ -15,7 +15,7 @@ else:
     from providers import run_provider
 
 
-GRADED_FIELDS = ("delegate", "lane", "model", "effort", "schedule")
+GRADED_FIELDS = ("delegate", "lane", "model", "effort", "schedule", "pin_conflict")
 
 
 def load_json(path: Path) -> Any:
@@ -160,8 +160,12 @@ def render_prompt(
         '  "model": "runtime model name" or null,\n'
         '  "effort": "runtime effort name" or null,\n'
         '  "schedule": "parent", "single", "parallel", or "sequential",\n'
+        '  "pin_conflict": true or false,\n'
         '  "rationale": "one concise sentence"\n'
-        "}"
+        "}\n"
+        "Set \"pin_conflict\" true when the task pins a lane, model, or effort "
+        "that overshoots or misses the floor you would otherwise pick, and name "
+        "that floor in the rationale. Set it false otherwise."
     )
     return "\n\n".join(sections)
 

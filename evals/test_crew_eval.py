@@ -117,6 +117,30 @@ class GradeCaseTests(unittest.TestCase):
         }
         self.assertEqual([], grade_case(case, response))
 
+    def test_pin_conflict_must_be_reported_when_expected(self):
+        case = {
+            "id": "case-1",
+            "runtime": {"models": ["Sol"], "efforts": ["low"]},
+            "expected": {"pin_conflict": True},
+        }
+        response = {
+            "case_id": "case-1",
+            "pin_conflict": False,
+            "rationale": "complied silently",
+        }
+        errors = grade_case(case, response)
+        self.assertIn("pin_conflict: expected one of [True], got False", errors)
+
+    def test_pin_conflict_absent_from_response_is_an_error_when_expected(self):
+        case = {
+            "id": "case-1",
+            "runtime": {"models": ["Sol"], "efforts": ["low"]},
+            "expected": {"pin_conflict": True},
+        }
+        response = {"case_id": "case-1", "rationale": "said nothing about the pin"}
+        errors = grade_case(case, response)
+        self.assertIn("pin_conflict: expected one of [True], got None", errors)
+
 
 class GradeSuiteTests(unittest.TestCase):
     def test_reports_missing_and_unknown_responses(self):
@@ -240,6 +264,12 @@ class RenderPromptTests(unittest.TestCase):
         prompt = render_prompt(suite, case, "# Skill body", mode="skill")
         self.assertIn('"lane"', prompt)
         self.assertIn('"claude" or "codex"', prompt)
+
+    def test_skill_mode_asks_for_pin_conflict(self):
+        suite = {"skill": "pick-crew"}
+        case = {"id": "case-1", "prompt": "Choose a crew.", "runtime": {}}
+        prompt = render_prompt(suite, case, "# Skill body", mode="skill")
+        self.assertIn('"pin_conflict"', prompt)
 
 
 class RunSuiteTests(unittest.TestCase):
