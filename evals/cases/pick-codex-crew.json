@@ -12,19 +12,19 @@
       "id": "deterministic-rename",
       "prompt": "The parent has already established this as a distinct subtask worth delegating: rename a private helper, update every reference, and run the focused tests. Choose its configuration.",
       "runtime": {"parent_model": "Sol", "models": ["Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high"]},
-      "expected": {"delegate": true, "model": ["Luna"], "effort": ["low"], "schedule": ["single"]}
+      "expected": {"delegate": true, "model": ["Luna"], "effort": ["medium"], "schedule": ["single"]}
     },
     {
       "id": "luna-unavailable",
       "prompt": "The parent has already established this as a distinct subtask worth delegating: perform an exhaustive mechanical search for a renamed constant and report remaining references. Choose its configuration.",
       "runtime": {"parent_model": "Sol", "models": ["Sol", "Terra"], "efforts": ["low", "medium", "high"]},
-      "expected": {"delegate": true, "model": ["Terra"], "effort": ["low"], "schedule": ["single"]}
+      "expected": {"delegate": true, "model": ["Terra"], "effort": ["medium"], "schedule": ["single"]}
     },
     {
       "id": "precedented-endpoint",
       "prompt": "The parent has already established this as a distinct subtask worth delegating: implement a low-risk endpoint by following an adjacent endpoint and its tests. Choose its configuration.",
       "runtime": {"parent_model": "Sol", "models": ["Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high"]},
-      "expected": {"delegate": true, "model": ["Terra"], "effort": ["medium"], "schedule": ["single"]}
+      "expected": {"delegate": true, "model": ["Terra"], "effort": ["low"], "schedule": ["single"]}
     },
     {
       "id": "security-mapping",

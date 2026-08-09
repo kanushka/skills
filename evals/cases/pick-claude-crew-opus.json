@@ -28,7 +28,7 @@
       "expected": {
         "delegate": true,
         "model": ["Haiku"],
-        "effort": ["low"],
+        "effort": ["medium"],
         "schedule": ["single"]
       }
     },
@@ -44,6 +44,51 @@
         "delegate": true,
         "model": ["Sonnet"],
         "effort": ["medium"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "opus-parent-balanced-deep",
+      "prompt": "The parent has established an independent delegated implementation: propagate request context across eight modules by following the adjacent trace-ID precedent. The architecture and required behavior are already defined, but the agent must cover synchronous, asynchronous, retry, and error paths and update the focused tests. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Sonnet"],
+        "effort": ["high"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "opus-parent-consequential-bounded",
+      "prompt": "The parent has established an independent delegated security review of one tenant-authorization component. Its API behavior and four authorization invariants are supplied, but the privilege-escalation mechanism is not identified. Analyze three interacting permission flows, identify the mechanism, compare two documented remedies, and produce a focused security-test checklist; the scope stays within this component and no implementation is required. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Opus"],
+        "effort": ["medium"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "opus-parent-consequential-shallow",
+      "prompt": "The parent has established an independent delegated adjudication of two conflicting security recommendations for a small authorization-policy diff. The complete diff, security invariants, evidence, and decision rubric are supplied. Return the safer recommendation with a brief rationale; no search or implementation is required. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Opus"],
+        "effort": ["low"],
         "schedule": ["single"]
       }
     },

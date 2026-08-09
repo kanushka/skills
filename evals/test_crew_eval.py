@@ -38,7 +38,7 @@ class GradeCaseTests(unittest.TestCase):
             "expected": {
                 "delegate": True,
                 "model": ["Terra"],
-                "effort": ["low"],
+                "effort": ["medium"],
                 "schedule": ["single"],
             },
         }
@@ -48,7 +48,7 @@ class GradeCaseTests(unittest.TestCase):
             "case_id": "deterministic",
             "delegate": True,
             "model": "Terra",
-            "effort": "low",
+            "effort": "medium",
             "schedule": "single",
             "rationale": "Verification carries confidence for deterministic work.",
         }
@@ -65,14 +65,14 @@ class GradeCaseTests(unittest.TestCase):
         }
         errors = grade_case(self.case, response)
         self.assertIn("model: expected one of ['Terra'], got 'Sol'", errors)
-        self.assertIn("effort: expected one of ['low'], got 'high'", errors)
+        self.assertIn("effort: expected one of ['medium'], got 'high'", errors)
 
     def test_requires_a_rationale(self):
         response = {
             "case_id": "deterministic",
             "delegate": True,
             "model": "Terra",
-            "effort": "low",
+            "effort": "medium",
             "schedule": "single",
             "rationale": "",
         }
@@ -131,6 +131,16 @@ class GradeSuiteTests(unittest.TestCase):
 
 
 class IntegrationCaseFileTests(unittest.TestCase):
+    @staticmethod
+    def selections(suite):
+        return {
+            (model, effort)
+            for case in suite["cases"]
+            for model in case["expected"]["model"]
+            for effort in case["expected"]["effort"]
+            if model is not None and effort is not None
+        }
+
     def test_claude_opus_suite_uses_the_real_parent_cap(self):
         suite = json.loads(
             (Path(__file__).parent / "cases" / "pick-claude-crew-opus.json").read_text()
@@ -149,6 +159,32 @@ class IntegrationCaseFileTests(unittest.TestCase):
         self.assertTrue(
             all(case["runtime"]["parent_model"] == "Sol" for case in suite["cases"])
         )
+
+    def test_claude_suite_covers_model_and_effort_as_independent_axes(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-claude-crew-opus.json").read_text()
+        )
+        self.assertTrue(
+            {("Sonnet", "high"), ("Opus", "medium"), ("Opus", "low")}
+            <= self.selections(suite)
+        )
+
+    def test_codex_suite_covers_model_and_effort_as_independent_axes(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-codex-crew-sol.json").read_text()
+        )
+        self.assertTrue(
+            {("Terra", "high"), ("Sol", "medium"), ("Sol", "low")}
+            <= self.selections(suite)
+        )
+
+    def test_exhaustive_deterministic_tasks_use_medium_effort(self):
+        for filename in ("pick-claude-crew-opus.json", "pick-codex-crew-sol.json"):
+            suite = json.loads((Path(__file__).parent / "cases" / filename).read_text())
+            deterministic = next(
+                case for case in suite["cases"] if case["id"].endswith("deterministic")
+            )
+            self.assertEqual(["medium"], deterministic["expected"]["effort"])
 
 
 class RenderPromptTests(unittest.TestCase):

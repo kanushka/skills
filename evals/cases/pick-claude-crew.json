@@ -12,7 +12,7 @@
       "id": "deterministic-rename",
       "prompt": "The parent has already established this as a distinct subtask worth delegating: rename a private helper, update every reference, and run the focused tests. Choose its configuration.",
       "runtime": {"parent_model": "Fable", "models": ["Fable", "Opus", "Sonnet", "Haiku"], "efforts": ["low", "medium", "high"]},
-      "expected": {"delegate": true, "model": ["Haiku"], "effort": ["low"], "schedule": ["single"]}
+      "expected": {"delegate": true, "model": ["Haiku"], "effort": ["medium"], "schedule": ["single"]}
     },
     {
       "id": "precedented-endpoint",
@@ -42,7 +42,7 @@
       "id": "haiku-unavailable",
       "prompt": "The parent has already established this as a distinct subtask worth delegating: perform an exhaustive mechanical search for a renamed constant and report remaining references. Choose its configuration.",
       "runtime": {"parent_model": "Fable", "models": ["Fable", "Opus", "Sonnet"], "efforts": ["low", "medium", "high"]},
-      "expected": {"delegate": true, "model": ["Sonnet"], "effort": ["low"], "schedule": ["single"]}
+      "expected": {"delegate": true, "model": ["Sonnet"], "effort": ["medium"], "schedule": ["single"]}
     },
     {
       "id": "independent-parallel-work",

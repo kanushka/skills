@@ -28,7 +28,7 @@
       "expected": {
         "delegate": true,
         "model": ["Luna"],
-        "effort": ["low"],
+        "effort": ["medium"],
         "schedule": ["single"]
       }
     },
@@ -43,7 +43,52 @@
       "expected": {
         "delegate": true,
         "model": ["Terra"],
+        "effort": ["low"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "sol-parent-balanced-deep",
+      "prompt": "The parent has established an independent delegated implementation: propagate request context across twenty modules. The architecture, required behavior, and one authoritative precedent are supplied. Each module exposes a different lifecycle API, so the agent must adapt the established convention across synchronous, asynchronous, retry, cancellation, fan-out, and error paths and update the focused tests. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Sol",
+        "models": ["Sol", "Terra", "Luna"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Terra"],
+        "effort": ["high"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "sol-parent-consequential-bounded",
+      "prompt": "The parent has established an independent delegated security review of one tenant-authorization component. Its API behavior and four authorization invariants are supplied, but the privilege-escalation mechanism is not identified. Analyze three interacting permission flows, identify the mechanism, compare two documented remedies, and produce a focused security-test checklist; the scope stays within this component and no implementation is required. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Sol",
+        "models": ["Sol", "Terra", "Luna"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Sol"],
         "effort": ["medium"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "sol-parent-consequential-shallow",
+      "prompt": "The parent has established an independent delegated adjudication of two conflicting security recommendations for a small authorization-policy diff. The complete diff, security invariants, evidence, and decision rubric are supplied. Return the safer recommendation with a brief rationale; no search or implementation is required. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Sol",
+        "models": ["Sol", "Terra", "Luna"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Sol"],
+        "effort": ["low"],
         "schedule": ["single"]
       }
     },

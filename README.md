@@ -7,7 +7,7 @@ Provider-specific skills for choosing whether to delegate work, which subagent m
 - `pick-claude-crew` — Claude Code: Fable, Opus, Sonnet, and Haiku.
 - `pick-codex-crew` — Codex: GPT-5.6 Sol, Terra, and Luna.
 
-Each skill selects the cheapest available configuration that clears the task's quality floor while respecting the parent-session capability cap.
+Each skill selects the model and effort independently: model capacity clears the task's judgment floor, while effort clears its reasoning-depth floor. The resulting pair remains within the parent-session capability cap.
 
 ## Install
 
@@ -48,13 +48,20 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v evals/test_crew_eval.py
 
 ## Eval cases
 
-Each provider has nine anchor cases covering:
+Each provider's default suite has nine anchor cases covering:
 
 - keeping tiny decisions in the parent session;
 - deterministic, balanced, consequential, and exceptional work;
 - unavailable-model fallback;
 - parent-session cap enforcement; and
 - parallel versus sequential scheduling.
+
+The real-parent integration suites also cover independent model and effort choices:
+
+- Claude: Sonnet/high, Opus/medium, and Opus/low.
+- Codex: Terra/high, Sol/medium, and Sol/low.
+
+These task definitions are saved in `evals/cases/pick-claude-crew-opus.json` and `evals/cases/pick-codex-crew-sol.json`.
 
 Render prompts without calling a provider:
 
