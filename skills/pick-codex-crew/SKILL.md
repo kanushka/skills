@@ -19,7 +19,7 @@ Choose the cheapest crew configuration that clears the task's **quality floor**.
 
 | Quality floor | Model | Effort | Typical work |
 |---|---|---|---|
-| Deterministic | Luna | low | Renames, formatting, exhaustive searches; require tests or a sweep |
+| Deterministic | Luna | medium | Renames, formatting, exhaustive searches; require tests or a sweep |
 | Balanced | Terra | medium | Precedented implementation, repository mapping, routine review |
 | Consequential | Sol | high | Ambiguous design, security analysis, high-blast-radius changes |
 | Exceptional | Sol | highest justified level exposed by the tool | Novel, cross-domain, irreversible work where failure cost dominates |

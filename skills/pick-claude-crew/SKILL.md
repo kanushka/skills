@@ -19,7 +19,7 @@ Choose the cheapest crew configuration that clears the task's **quality floor**.
 
 | Quality floor | Model | Effort | Typical work |
 |---|---|---|---|
-| Deterministic | Haiku | low | Renames, formatting, exhaustive searches; require tests or a sweep |
+| Deterministic | Haiku | medium | Renames, formatting, exhaustive searches; require tests or a sweep |
 | Balanced | Sonnet | medium | Precedented implementation, repository mapping, routine review |
 | Consequential | Opus | high | Ambiguous design, security analysis, high-blast-radius changes |
 | Exceptional | Fable | high or highest available | Novel, cross-domain, irreversible work where failure cost dominates |
