@@ -288,6 +288,48 @@ class IntegrationCaseFileTests(unittest.TestCase):
             )
             self.assertEqual(["medium"], deterministic["expected"]["effort"])
 
+    def test_pick_crew_suite_covers_both_lanes(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-crew.json").read_text()
+        )
+        self.assertEqual("pick-crew", suite["skill"])
+        self.assertEqual("skills/pick-crew/SKILL.md", suite["skill_path"])
+        lanes = {
+            lane
+            for case in suite["cases"]
+            for lane in case["expected"].get("lane", [])
+        }
+        self.assertEqual({"claude", "codex"}, lanes)
+
+    def test_pick_crew_suite_grades_a_pin_conflict(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-crew.json").read_text()
+        )
+        pinned = next(
+            case for case in suite["cases"] if case["id"] == "pinned-tier-overshoot"
+        )
+        self.assertTrue(pinned["expected"]["pin_conflict"])
+
+    def test_pick_crew_suite_declares_codex_availability_on_every_case(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-crew.json").read_text()
+        )
+        self.assertTrue(suite["cases"])
+        for case in suite["cases"]:
+            self.assertIn("codex_available", case["runtime"], case["id"])
+
+    def test_pick_crew_expected_models_are_exposed_by_their_runtime(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-crew.json").read_text()
+        )
+        for case in suite["cases"]:
+            for model in case["expected"].get("model", []):
+                if model is not None:
+                    self.assertIn(model, case["runtime"]["models"], case["id"])
+            for effort in case["expected"].get("effort", []):
+                if effort is not None:
+                    self.assertIn(effort, case["runtime"]["efforts"], case["id"])
+
 
 class RenderPromptTests(unittest.TestCase):
     def test_skill_mode_embeds_skill_and_output_contract(self):

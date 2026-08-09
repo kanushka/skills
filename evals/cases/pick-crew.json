@@ -1,0 +1,66 @@
+{
+  "skill": "pick-crew",
+  "skill_path": "skills/pick-crew/SKILL.md",
+  "cases": [
+    {
+      "id": "cost-driven-implementation",
+      "prompt": "The parent has already established this as a distinct subtask worth delegating: port an existing auth handler to a second service by following the handler and its tests, a substantial and fully precedented build whose whole specification fits in the prompt. Token cost dominates the choice. Choose its configuration.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "lane": ["codex"], "model": ["Terra"], "effort": ["medium"], "schedule": ["single"], "pin_conflict": false}
+    },
+    {
+      "id": "trivial-mechanical-stays-claude",
+      "prompt": "The parent has already established this as a distinct subtask worth delegating: rename one private helper in a single file and update its three references. Choose its configuration.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "lane": ["claude"], "model": ["Haiku"], "schedule": ["single"], "pin_conflict": false}
+    },
+    {
+      "id": "session-context-stays-claude",
+      "prompt": "The parent has already established this as a distinct subtask worth delegating: implement the caching approach this session settled on across four verbal revisions. The reasoning behind the approach was never written to a file. Choose its configuration.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "lane": ["claude"], "pin_conflict": false}
+    },
+    {
+      "id": "judgment-above-sol",
+      "prompt": "Design an irreversible, novel migration spanning storage, identity, and billing with incomplete requirements and no precedent. Choose its configuration.",
+      "runtime": {"parent_model": "Fable", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "lane": ["claude"], "model": ["Fable"], "effort": ["high"], "schedule": ["single", "parallel"], "pin_conflict": false}
+    },
+    {
+      "id": "codex-unavailable-fallback",
+      "prompt": "The parent has already established this as a distinct subtask worth delegating: port an existing auth handler to a second service by following the handler and its tests, a substantial and fully precedented build whose whole specification fits in the prompt. Token cost dominates the choice. Choose its configuration.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku"], "efforts": ["low", "medium", "high"], "codex_available": false},
+      "expected": {"delegate": true, "lane": ["claude"], "model": ["Sonnet"], "effort": ["medium"], "schedule": ["single"], "pin_conflict": false}
+    },
+    {
+      "id": "independent-second-pass",
+      "prompt": "The parent designed a lock-ordering fix, applied it twice, and the deadlock still reproduces under load. The parent has established that an independent diagnosis pass on the same code is required, with the whole failing scenario written down in the prompt. Choose its configuration.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "lane": ["codex"], "model": ["Sol"], "schedule": ["single"], "pin_conflict": false}
+    },
+    {
+      "id": "pinned-tier-overshoot",
+      "prompt": "The parent has already established this as a distinct subtask worth delegating: delete a deprecated feature flag and every reference to it, a mechanical sweep with a clear completion check. The user has pinned the subagent to Sol. Choose its configuration.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "lane": ["codex"], "model": ["Sol"], "schedule": ["single"], "pin_conflict": true}
+    },
+    {
+      "id": "parent-cap-claude-lane",
+      "prompt": "The parent has already established that an independent delegated review is required: review the authorization redesign for security flaws. The reviewer must use the trust-boundary decisions this session made verbally and return a structured finding list the parent will reason over directly. Choose the strongest configuration permitted by the parent-session cap.",
+      "runtime": {"parent_model": "Sonnet", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "lane": ["claude"], "model": ["Sonnet"], "effort": ["high"], "schedule": ["single"], "pin_conflict": false}
+    },
+    {
+      "id": "independent-parallel-work",
+      "prompt": "Map frontend conventions and database conventions. The workstreams are read-only and neither needs the other's output. Choose the crew schedule.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "schedule": ["parallel"], "pin_conflict": false}
+    },
+    {
+      "id": "dependent-sequential-work",
+      "prompt": "First derive the API contract, then implement a client that requires that contract. Choose the crew schedule.",
+      "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
+      "expected": {"delegate": true, "schedule": ["sequential"], "pin_conflict": false}
+    }
+  ]
+}
