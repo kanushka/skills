@@ -15,6 +15,7 @@ Choose the cheapest crew that clears two independent floors: **judgment** and **
 4. **Choose effort independently.** Use depth, search breadth, context size, step count, and interacting constraints. Done when the cheapest exposed effort clears the depth signals below.
 5. **Check the pair.** Improve context or verification when cheaper. Choose the cheapest pairing that independently clears both floors. Done when lowering either axis would miss its floor.
 6. **Schedule.** Parallelize independent work; sequence shared files and output dependencies. Done when each dependency is ordered and each parallel pair is independent.
+7. **Label every dispatch.** Name each spawned agent `model_effort_task_description` — `sol_high_trace_render_regression`, `luna_rename_test_fixtures` where nothing set effort. `task_name` accepts lowercase letters, digits, and underscores, so join every part with underscores. Resolve each part against what the agent actually runs with, stopping at the first match: model from the spawn call, else the parent's model, which a spawned agent inherits; effort from the spawn call, else the parent's effort, else omitted. Say which part is ambiguous rather than guessing it. Done when every dispatch carries its resolved name.
 
 ## Model Floor: Judgment
 
@@ -43,4 +44,4 @@ If the feasible set cannot clear both floors, keep the critical reasoning in the
 
 ## Dispatch Contract
 
-Give each subagent one deliverable, minimal context, boundaries, and a checkable completion criterion. Pass `model` and `reasoning_effort` through actual fields. Use a lowercase `task_name`; parallel agents get disjoint files or read-only scopes.
+Give each subagent one deliverable, minimal context, boundaries, and a checkable completion criterion. Pass `model` and `reasoning_effort` through actual fields. Parallel agents get disjoint files or read-only scopes. The name from step 7 travels with each dispatch, so a running fleet reads back as the crew this skill picked.

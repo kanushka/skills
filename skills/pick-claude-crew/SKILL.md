@@ -15,6 +15,7 @@ Choose the cheapest crew that clears two independent floors: **judgment** and **
 4. **Choose effort independently.** Use depth, search breadth, context size, step count, and interacting constraints. Done when the cheapest exposed effort clears the depth signals below.
 5. **Check the pair.** Improve context or verification when cheaper. Choose the cheapest pairing that independently clears both floors. Done when lowering either axis would miss its floor.
 6. **Schedule.** Parallelize independent work; sequence shared files and output dependencies. Done when each dependency is ordered and each parallel pair is independent.
+7. **Label every dispatch.** Prefix the Agent tool's `description`, or a workflow `agent()` call's `label`, with `model·effort: task_description` — `opus·high: trace render regression`, `haiku: rename test fixtures` where nothing set effort. Resolve each part against what the agent actually runs with, stopping at the first match: model from the call, else the agent definition's frontmatter, else the session model; effort from the call, else that frontmatter, else omitted. Say which part is ambiguous rather than guessing it. Done when every dispatch carries its resolved prefix.
 
 ## Model Floor: Judgment
 
@@ -44,4 +45,4 @@ If the feasible set cannot clear both floors, keep the critical reasoning in the
 
 ## Dispatch Contract
 
-Give each subagent one deliverable, minimal context, boundaries, and a checkable completion criterion. Pass model and effort through actual tool fields. Parallel agents get disjoint files or read-only scopes.
+Give each subagent one deliverable, minimal context, boundaries, and a checkable completion criterion. Pass model and effort through actual tool fields. Parallel agents get disjoint files or read-only scopes. The label from step 7 travels with each dispatch, so a running fleet reads back as the crew this skill picked.
