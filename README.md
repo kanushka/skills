@@ -2,14 +2,21 @@
 
 [![skills.sh](https://skills.sh/b/kanushka/skills)](https://skills.sh/kanushka/skills)
 
-Provider-specific skills for choosing whether to delegate work, which subagent model and reasoning effort to use, and whether subagents can run in parallel.
-
-## Skills
-
-- `pick-claude-crew` — Claude Code: Fable, Opus, Sonnet, and Haiku.
-- `pick-codex-crew` — Codex: GPT-5.6 Sol, Terra, and Luna.
+Skills for choosing whether to delegate work, which subagent model and reasoning effort to use, and whether subagents can run in parallel.
 
 Each skill selects the model and effort independently: model capacity clears the task's judgment floor, while effort clears its reasoning-depth floor. The resulting pair remains within the parent-session capability cap.
+
+## Choose a skill
+
+| Skill | Runs in | Dispatches to | Also requires |
+|---|---|---|---|
+| `pick-claude-crew` | Claude Code | Claude subagents — Fable, Opus, Sonnet, Haiku | — |
+| `pick-codex-crew` | Codex | Codex subagents — GPT-5.6 Sol, Terra, Luna | — |
+| `pick-crew` | Claude Code | Claude **and** Codex subagents | Codex CLI, Codex plugin |
+
+`pick-crew` adds a lane choice ahead of the model and effort choice: cost-driven work routes to a Codex subagent, work needing session context or judgment above Sol stays on Claude. One plan mixes lanes freely, and the two lanes bill to separate budgets.
+
+**On Claude Code, install `pick-claude-crew` or `pick-crew`, not both.** Their descriptions overlap, so both would load on every turn and either could claim the same decision. Pick `pick-crew` once the Codex CLI is set up; pick `pick-claude-crew` otherwise.
 
 ## Install
 
@@ -33,6 +40,15 @@ npx skills add kanushka/skills \
   --global
 ```
 
+Claude Code driving both lanes:
+
+```bash
+npx skills add kanushka/skills \
+  --skill pick-crew \
+  --agent claude-code \
+  --global
+```
+
 `--global` makes the skill available across projects. Omit it to install into only the current project. Add `--yes` for a non-interactive install.
 
 If you already cloned this repository, manual copying also works:
@@ -40,7 +56,18 @@ If you already cloned this repository, manual copying also works:
 ```bash
 cp -R skills/pick-claude-crew ~/.claude/skills/
 cp -R skills/pick-codex-crew ~/.codex/skills/
+cp -R skills/pick-crew ~/.claude/skills/
 ```
+
+### Requirements for `pick-crew`
+
+`pick-crew` dispatches Codex subagents from inside Claude Code, so three things must be in place before installing it:
+
+1. The [Codex CLI](https://developers.openai.com/codex/cli), authenticated — check with `codex login status`.
+2. The [Codex plugin for Claude Code](https://github.com/openai/codex-plugin-cc#install), which supplies the `codex:codex-rescue` subagent the skill dispatches to.
+3. A Claude Code restart or `/reload-plugins` after installing the plugin, so the subagent appears in the running session.
+
+Without the plugin the Codex lane is simply unavailable, and the skill keeps every subtask on Claude.
 
 ## Unit tests
 
@@ -63,7 +90,7 @@ The real-parent integration suites also cover independent model and effort choic
 - Claude: Sonnet/high, Opus/medium, and Opus/low.
 - Codex: Terra/high, Sol/medium, and Sol/low.
 
-These task definitions are saved in `evals/cases/pick-claude-crew-opus.json` and `evals/cases/pick-codex-crew-sol.json`.
+These task definitions are saved in `evals/cases/pick-claude-crew-opus.json` and `evals/cases/pick-codex-crew-sol.json`. `pick-crew` has no suite yet; its lane choice needs grading the harness does not currently do.
 
 Render prompts without calling a provider:
 
