@@ -21,7 +21,9 @@ The real-parent integration suites also cover independent model and effort choic
 - Claude: Sonnet/high, Opus/medium, and Opus/low.
 - Codex: Terra/high, Sol/medium, and Sol/low.
 
-These task definitions are saved in `evals/cases/pick-claude-crew-opus.json` and `evals/cases/pick-codex-crew-sol.json`. `pick-crew` has no suite yet; its lane choice needs grading the harness does not currently do.
+These task definitions are saved in `evals/cases/pick-claude-crew-opus.json` and `evals/cases/pick-codex-crew-sol.json`.
+
+`evals/cases/pick-crew.json` grades the two-lane skill. Seven cases anchor the lane choice — cost-driven work to Codex, trivial mechanical work and unwritten session context to Claude, a judgment floor above Sol to Claude, an independent second pass to Codex, and a pinned tier the crew must honour while reporting the floor it overshoots. Three more mirror the parent cap and the two scheduling anchors, which behave differently here because the cap constrains only the Claude lane. The suite grades selection only: the harness renders a prompt and grades a JSON verdict, so the dispatch contract in `CODEX-DISPATCH.md` is out of its reach.
 
 Render prompts without calling a provider:
 
@@ -68,6 +70,19 @@ python3 evals/crew_eval.py run \
   --effort low \
   --repetitions 1 \
   --output-dir evals/results/claude-skill
+```
+
+`pick-crew` on Claude Code:
+
+```bash
+python3 evals/crew_eval.py run \
+  --provider claude \
+  --cases evals/cases/pick-crew.json \
+  --mode skill \
+  --model opus \
+  --effort medium \
+  --repetitions 3 \
+  --output-dir evals/results/pick-crew-skill
 ```
 
 Run the same command with `--mode control` for a no-skill baseline. Add `--allow-fail` when intentionally collecting a failing baseline while requiring a zero exit status. Use several repetitions before drawing conclusions from stochastic results; additional repetitions increase provider usage and cost.
