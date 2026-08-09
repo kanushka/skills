@@ -81,6 +81,11 @@ python3 evals/crew_eval.py run \
 
 Run the same command with `--mode control` for a no-skill baseline. Add `--allow-fail` when intentionally collecting a failing baseline while requiring a zero exit status. Use several repetitions before drawing conclusions from stochastic results; additional repetitions increase provider usage and cost.
 
+The default case files exercise several simulated parent caps. For a live integration check where the simulated parent matches the model executing the eval, use:
+
+- `evals/cases/pick-claude-crew-opus.json` with `--model opus`
+- `evals/cases/pick-codex-crew-sol.json` with `--model gpt-5.6-sol`
+
 Check authentication before live runs:
 
 ```bash

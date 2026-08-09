@@ -130,6 +130,27 @@ class GradeSuiteTests(unittest.TestCase):
         self.assertEqual(0.5, summary["case_pass_rates"]["known"])
 
 
+class IntegrationCaseFileTests(unittest.TestCase):
+    def test_claude_opus_suite_uses_the_real_parent_cap(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-claude-crew-opus.json").read_text()
+        )
+        self.assertTrue(suite["cases"])
+        self.assertTrue(
+            all(case["runtime"]["parent_model"] == "Opus" for case in suite["cases"])
+        )
+        self.assertTrue(all("Fable" not in case["expected"]["model"] for case in suite["cases"]))
+
+    def test_codex_sol_suite_uses_the_real_parent_cap(self):
+        suite = json.loads(
+            (Path(__file__).parent / "cases" / "pick-codex-crew-sol.json").read_text()
+        )
+        self.assertTrue(suite["cases"])
+        self.assertTrue(
+            all(case["runtime"]["parent_model"] == "Sol" for case in suite["cases"])
+        )
+
+
 class RenderPromptTests(unittest.TestCase):
     def test_skill_mode_embeds_skill_and_output_contract(self):
         suite = {"skill": "pick-codex-crew"}

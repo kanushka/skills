@@ -1,0 +1,81 @@
+{
+  "skill": "pick-claude-crew",
+  "skill_path": "skills/pick-claude-crew/SKILL.md",
+  "cases": [
+    {
+      "id": "opus-parent-inline",
+      "prompt": "Choose whether to spawn a subagent to name one private helper before the parent edits it.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": false,
+        "model": [null],
+        "effort": [null],
+        "schedule": ["parent"]
+      }
+    },
+    {
+      "id": "opus-parent-deterministic",
+      "prompt": "The parent has established an independent delegated task: rename a private helper, update every reference, and run focused tests. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Haiku"],
+        "effort": ["low"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "opus-parent-balanced",
+      "prompt": "The parent has established an independent delegated task: implement a low-risk endpoint from an adjacent precedent and its tests. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Sonnet"],
+        "effort": ["medium"],
+        "schedule": ["single"]
+      }
+    },
+    {
+      "id": "opus-parent-security",
+      "prompt": "The parent has established an independent delegated review: map an unfamiliar authentication subsystem and identify security risks and trust boundaries. Choose its configuration.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Opus"],
+        "effort": ["high"],
+        "schedule": ["single", "parallel"]
+      }
+    },
+    {
+      "id": "opus-parent-exceptional-cap",
+      "prompt": "The parent has established an independent delegated architecture review for an irreversible, novel migration spanning storage, identity, and billing. Choose the strongest configuration allowed by the parent cap.",
+      "runtime": {
+        "parent_model": "Opus",
+        "models": ["Fable", "Opus", "Sonnet", "Haiku"],
+        "efforts": ["low", "medium", "high"]
+      },
+      "expected": {
+        "delegate": true,
+        "model": ["Opus"],
+        "effort": ["high"],
+        "schedule": ["single"]
+      }
+    }
+  ]
+}
