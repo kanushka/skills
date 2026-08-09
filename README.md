@@ -11,6 +11,30 @@ Each skill selects the cheapest available configuration that clears the task's q
 
 ## Install
 
+Install directly from GitHub with the [skills CLI](https://www.skills.sh/docs/cli). No repository clone is required.
+
+Claude Code:
+
+```bash
+npx skills add kanushka/skills \
+  --skill pick-claude-crew \
+  --agent claude-code \
+  --global
+```
+
+Codex:
+
+```bash
+npx skills add kanushka/skills \
+  --skill pick-codex-crew \
+  --agent codex \
+  --global
+```
+
+`--global` makes the skill available across projects. Omit it to install into only the current project. Add `--yes` for a non-interactive install.
+
+If you already cloned this repository, manual copying also works:
+
 ```bash
 cp -R skills/pick-claude-crew ~/.claude/skills/
 cp -R skills/pick-codex-crew ~/.codex/skills/
