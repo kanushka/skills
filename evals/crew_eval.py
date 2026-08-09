@@ -15,7 +15,7 @@ else:
     from providers import run_provider
 
 
-GRADED_FIELDS = ("delegate", "model", "effort", "schedule")
+GRADED_FIELDS = ("delegate", "lane", "model", "effort", "schedule")
 
 
 def load_json(path: Path) -> Any:
@@ -156,6 +156,7 @@ def render_prompt(
         "{\n"
         f'  "case_id": {json.dumps(case["id"])},\n'
         '  "delegate": true or false,\n'
+        '  "lane": "claude" or "codex",\n'
         '  "model": "runtime model name" or null,\n'
         '  "effort": "runtime effort name" or null,\n'
         '  "schedule": "parent", "single", "parallel", or "sequential",\n'

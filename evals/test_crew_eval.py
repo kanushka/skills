@@ -89,6 +89,34 @@ class GradeCaseTests(unittest.TestCase):
             grade_case(self.case, response),
         )
 
+    def test_lane_mismatch_is_an_error(self):
+        case = {
+            "id": "case-1",
+            "runtime": {"models": ["Terra"], "efforts": ["medium"]},
+            "expected": {"lane": ["codex"]},
+        }
+        response = {
+            "case_id": "case-1",
+            "lane": "claude",
+            "rationale": "picked claude",
+        }
+        errors = grade_case(case, response)
+        self.assertIn("lane: expected one of ['codex'], got 'claude'", errors)
+
+    def test_lane_is_skipped_when_a_case_omits_it(self):
+        case = {
+            "id": "case-1",
+            "runtime": {"models": ["Terra"], "efforts": ["medium"]},
+            "expected": {"delegate": True},
+        }
+        response = {
+            "case_id": "case-1",
+            "delegate": True,
+            "lane": "whatever",
+            "rationale": "no lane declared",
+        }
+        self.assertEqual([], grade_case(case, response))
+
 
 class GradeSuiteTests(unittest.TestCase):
     def test_reports_missing_and_unknown_responses(self):
@@ -205,6 +233,13 @@ class RenderPromptTests(unittest.TestCase):
         case = {"id": "case-1", "prompt": "Choose a crew.", "runtime": {}}
         prompt = render_prompt(suite, case, "SECRET SKILL", mode="control")
         self.assertNotIn("SECRET SKILL", prompt)
+
+    def test_skill_mode_asks_for_lane(self):
+        suite = {"skill": "pick-crew"}
+        case = {"id": "case-1", "prompt": "Choose a crew.", "runtime": {}}
+        prompt = render_prompt(suite, case, "# Skill body", mode="skill")
+        self.assertIn('"lane"', prompt)
+        self.assertIn('"claude" or "codex"', prompt)
 
 
 class RunSuiteTests(unittest.TestCase):
