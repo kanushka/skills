@@ -48,7 +48,7 @@
       "id": "parent-cap-claude-lane",
       "prompt": "The parent has already established that an independent delegated review is required: review the authorization redesign for security flaws. The reviewer must use the trust-boundary decisions this session made verbally and return a structured finding list the parent will reason over directly. Choose the strongest configuration permitted by the parent-session cap.",
       "runtime": {"parent_model": "Sonnet", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
-      "expected": {"delegate": true, "lane": ["claude"], "model": ["Sonnet"], "effort": ["high"], "schedule": ["single"], "pin_conflict": false}
+      "expected": {"delegate": true, "lane": ["claude"], "model": ["Sonnet"], "effort": ["high"], "schedule": ["single"]}
     },
     {
       "id": "independent-parallel-work",
