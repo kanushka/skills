@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from evals.crew_eval import (
+    GRADED_FIELDS,
     grade_case,
     grade_repetitions,
     grade_suite,
@@ -17,6 +18,7 @@ from evals.crew_eval import (
     validated_output_dir,
 )
 from evals.providers import (
+    OUTPUT_SCHEMA,
     build_claude_command,
     build_codex_command,
     parse_claude_output,
@@ -539,6 +541,24 @@ class ProviderAdapterTests(unittest.TestCase):
             )
         self.assertEqual("prompt", mocked.call_args.kwargs["input"])
         self.assertNotIn("stdin", mocked.call_args.kwargs)
+
+
+class OutputSchemaTests(unittest.TestCase):
+    def test_schema_carries_every_graded_field(self):
+        for field in GRADED_FIELDS:
+            self.assertIn(field, OUTPUT_SCHEMA["properties"], field)
+
+    def test_schema_requires_lane_and_pin_conflict(self):
+        self.assertIn("lane", OUTPUT_SCHEMA["required"])
+        self.assertIn("pin_conflict", OUTPUT_SCHEMA["required"])
+
+    def test_lane_is_constrained_to_the_two_lanes(self):
+        self.assertEqual(
+            ["claude", "codex"], OUTPUT_SCHEMA["properties"]["lane"]["enum"]
+        )
+
+    def test_schema_still_forbids_unknown_properties(self):
+        self.assertFalse(OUTPUT_SCHEMA["additionalProperties"])
 
 
 if __name__ == "__main__":

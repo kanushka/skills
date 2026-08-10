@@ -14,15 +14,26 @@ OUTPUT_SCHEMA = {
     "properties": {
         "case_id": {"type": "string"},
         "delegate": {"type": "boolean"},
+        "lane": {"type": "string", "enum": ["claude", "codex"]},
         "model": {"type": ["string", "null"]},
         "effort": {"type": ["string", "null"]},
         "schedule": {
             "type": "string",
             "enum": ["parent", "single", "parallel", "sequential"],
         },
+        "pin_conflict": {"type": "boolean"},
         "rationale": {"type": "string"},
     },
-    "required": ["case_id", "delegate", "model", "effort", "schedule", "rationale"],
+    "required": [
+        "case_id",
+        "delegate",
+        "lane",
+        "model",
+        "effort",
+        "schedule",
+        "pin_conflict",
+        "rationale",
+    ],
     "additionalProperties": False,
 }
 
