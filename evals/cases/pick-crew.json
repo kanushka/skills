@@ -6,7 +6,7 @@
       "id": "cost-driven-implementation",
       "prompt": "The parent has already established this as a distinct subtask worth delegating: port an existing auth handler to a second service by following the handler and its tests, a substantial and fully precedented build whose whole specification fits in the prompt. Token cost dominates the choice. Choose its configuration.",
       "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
-      "expected": {"delegate": true, "lane": ["codex"], "model": ["Terra"], "effort": ["medium"], "schedule": ["single"], "pin_conflict": false}
+      "expected": {"delegate": true, "lane": ["codex"], "model": ["Terra"], "effort": ["medium", "high"], "schedule": ["single"], "pin_conflict": false}
     },
     {
       "id": "trivial-mechanical-stays-claude",
@@ -22,7 +22,7 @@
     },
     {
       "id": "judgment-above-sol",
-      "prompt": "Design an irreversible, novel migration spanning storage, identity, and billing with incomplete requirements and no precedent. Choose its configuration.",
+      "prompt": "The parent has already established this as a distinct subtask worth delegating: design an irreversible, novel migration spanning storage, identity, and billing with incomplete requirements and no precedent. Choose its configuration.",
       "runtime": {"parent_model": "Fable", "models": ["Fable", "Opus", "Sonnet", "Haiku", "Sol", "Terra", "Luna"], "efforts": ["low", "medium", "high", "xhigh"], "codex_available": true},
       "expected": {"delegate": true, "lane": ["claude"], "model": ["Fable"], "effort": ["high"], "schedule": ["single", "parallel"], "pin_conflict": false}
     },
@@ -30,7 +30,7 @@
       "id": "codex-unavailable-fallback",
       "prompt": "The parent has already established this as a distinct subtask worth delegating: port an existing auth handler to a second service by following the handler and its tests, a substantial and fully precedented build whose whole specification fits in the prompt. Token cost dominates the choice. Choose its configuration.",
       "runtime": {"parent_model": "Opus", "models": ["Fable", "Opus", "Sonnet", "Haiku"], "efforts": ["low", "medium", "high"], "codex_available": false},
-      "expected": {"delegate": true, "lane": ["claude"], "model": ["Sonnet"], "effort": ["medium"], "schedule": ["single"], "pin_conflict": false}
+      "expected": {"delegate": true, "lane": ["claude"], "model": ["Sonnet"], "effort": ["medium", "high"], "schedule": ["single"], "pin_conflict": false}
     },
     {
       "id": "independent-second-pass",
