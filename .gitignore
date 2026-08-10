@@ -3,3 +3,7 @@
 __pycache__/
 *.py[cod]
 evals/results/
+
+# Local-only planning and agent state
+docs/plans/
+.superpowers/
