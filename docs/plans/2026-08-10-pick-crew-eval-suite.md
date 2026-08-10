@@ -627,6 +627,138 @@ git commit -m "test: correct pick-crew case expectations against live rationales
 
 ---
 
+### Task 7: Let the new fields survive the provider, and correct three cases
+
+**Files:**
+- Modify: `evals/providers.py:12-27` (`OUTPUT_SCHEMA`)
+- Modify: `evals/cases/pick-crew.json` (three cases)
+- Test: `evals/test_crew_eval.py`
+
+**Interfaces:**
+- Consumes: `GRADED_FIELDS` and the rendered schema from Tasks 1–2; the case file from Task 4.
+- Produces: an `OUTPUT_SCHEMA` whose `properties` and `required` both cover `lane` and `pin_conflict`. Task 6's re-run depends on it.
+
+Why this task exists: Task 6's first live run scored 0/3 on every case. `evals/providers.py` carries a second output schema, independent of `render_prompt`'s, and passes it to the CLI as a hard `--json-schema` with `"additionalProperties": False`. The CLI stripped `lane` and `pin_conflict` from every response before grading — the models had reasoned about both (a rep-001 rationale opens "Codex lane (no pin conflict)"), but the grader saw `None`. Tasks 1–4 were correct against their briefs; the plan simply never touched `providers.py`.
+
+The three case corrections come from the same run, on the four fields that did survive:
+
+- `cost-driven-implementation` and `codex-unavailable-fallback` expected `effort: ["medium"]`; both arms returned `high` all three times, reasoning that the port needs a broad read of the handler plus its tests. The skill's own Effort Floor section says "broad precedented implementation can use Sonnet/high or Terra/high" — the expectation contradicted the skill's worked example. Widening to `["medium", "high"]` admits reasoning the case wrongly excluded; it is not a skill defect.
+- `judgment-above-sol` expected `delegate: true`; both arms returned `delegate: false, schedule: "parent"`, reasoning that a Fable parent keeps novel connecting work in-session — a correct read of step 1. The prompt was copied from `pick-claude-crew` without the established-delegation preamble its nine siblings all carry. The prompt is what is wrong.
+
+- [ ] **Step 1: Write the failing tests**
+
+Add a new class to `evals/test_crew_eval.py`, after `ProviderAdapterTests`:
+
+```python
+class OutputSchemaTests(unittest.TestCase):
+    def test_schema_carries_every_graded_field(self):
+        for field in GRADED_FIELDS:
+            self.assertIn(field, OUTPUT_SCHEMA["properties"], field)
+
+    def test_schema_requires_lane_and_pin_conflict(self):
+        self.assertIn("lane", OUTPUT_SCHEMA["required"])
+        self.assertIn("pin_conflict", OUTPUT_SCHEMA["required"])
+
+    def test_lane_is_constrained_to_the_two_lanes(self):
+        self.assertEqual(
+            ["claude", "codex"], OUTPUT_SCHEMA["properties"]["lane"]["enum"]
+        )
+
+    def test_schema_still_forbids_unknown_properties(self):
+        self.assertFalse(OUTPUT_SCHEMA["additionalProperties"])
+```
+
+`test_schema_carries_every_graded_field` is the guard that would have caught this defect: it ties the provider's schema to `GRADED_FIELDS`, so widening one without the other now fails a test.
+
+Add `GRADED_FIELDS` to the existing `from evals.crew_eval import (...)` block and `OUTPUT_SCHEMA` to the existing `from evals.providers import (...)` block.
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v evals/test_crew_eval.py`
+Expected: `test_schema_carries_every_graded_field`, `test_schema_requires_lane_and_pin_conflict`, and `test_lane_is_constrained_to_the_two_lanes` FAIL. `test_schema_still_forbids_unknown_properties` passes already — it is the guard that keeps the fix from being "delete `additionalProperties`".
+
+- [ ] **Step 3: Widen the provider schema**
+
+In `evals/providers.py`, replace `OUTPUT_SCHEMA` with:
+
+```python
+OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "case_id": {"type": "string"},
+        "delegate": {"type": "boolean"},
+        "lane": {"type": "string", "enum": ["claude", "codex"]},
+        "model": {"type": ["string", "null"]},
+        "effort": {"type": ["string", "null"]},
+        "schedule": {
+            "type": "string",
+            "enum": ["parent", "single", "parallel", "sequential"],
+        },
+        "pin_conflict": {"type": "boolean"},
+        "rationale": {"type": "string"},
+    },
+    "required": [
+        "case_id",
+        "delegate",
+        "lane",
+        "model",
+        "effort",
+        "schedule",
+        "pin_conflict",
+        "rationale",
+    ],
+    "additionalProperties": False,
+}
+```
+
+Both fields are `required` because `render_prompt` asks every suite for them, not just `pick-crew`. A `pick-codex-crew` run will now emit a `lane` its case file does not grade; `grade_case` skips undeclared fields, so that is inert.
+
+- [ ] **Step 4: Run the full test suite**
+
+Run: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v evals/test_crew_eval.py`
+Expected: PASS, all tests.
+
+- [ ] **Step 5: Commit the harness fix**
+
+```bash
+git add evals/providers.py evals/test_crew_eval.py
+git commit -m "fix: let lane and pin-conflict survive the eval provider schema"
+```
+
+- [ ] **Step 6: Correct the two effort expectations**
+
+In `evals/cases/pick-crew.json`, in the case with `"id": "cost-driven-implementation"`, change its `expected` `effort` from `["medium"]` to `["medium", "high"]`. Make the identical change to the case with `"id": "codex-unavailable-fallback"`. Change nothing else in either case.
+
+- [ ] **Step 7: Correct the `judgment-above-sol` prompt**
+
+In the same file, in the case with `"id": "judgment-above-sol"`, replace the `prompt` value with exactly:
+
+```
+The parent has already established this as a distinct subtask worth delegating: design an irreversible, novel migration spanning storage, identity, and billing with incomplete requirements and no precedent. Choose its configuration.
+```
+
+Leave that case's `runtime` and `expected` untouched.
+
+- [ ] **Step 8: Verify the file still parses and still passes its integration tests**
+
+Run:
+
+```bash
+python3 -c "import json; d=json.load(open('evals/cases/pick-crew.json')); print(len(d['cases']), 'cases')"
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v evals/test_crew_eval.py
+```
+
+Expected: `10 cases`, then PASS on all tests.
+
+- [ ] **Step 9: Commit the case corrections**
+
+```bash
+git add evals/cases/pick-crew.json
+git commit -m "test: correct pick-crew case expectations against live rationales"
+```
+
+---
+
 ## Self-Review
 
 **Spec coverage.** The three agreed harness changes are Tasks 1–2 (`lane`, `pin_conflict`, both in `GRADED_FIELDS` and in the rendered schema). The agreed runtime block — flat seven-model `models` plus `codex_available` — is in every case in Task 4. All seven agreed lane anchors appear, with the ids the handoff named. Open call 1 resolved: `codex-unavailable-fallback` is kept, with its limit written into the case file notes. Open call 2 resolved: three mirrors, not nine. The `README.md` line the handoff asked to update does not exist; the equivalent claim at `TESTING.md:24` is updated in Task 5, and the discrepancy is called out in the File Structure table.
