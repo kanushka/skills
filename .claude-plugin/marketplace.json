@@ -1,0 +1,16 @@
+{
+  "plugins": [
+    {
+      "name": "crew-selection",
+      "skills": [
+        "./skills/pick-claude-crew",
+        "./skills/pick-codex-crew",
+        "./skills/pick-crew"
+      ]
+    },
+    {
+      "name": "pull-requests",
+      "skills": ["./skills/babysit-pr"]
+    }
+  ]
+}
