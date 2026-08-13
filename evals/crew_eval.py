@@ -17,6 +17,29 @@ else:
 
 GRADED_FIELDS = ("delegate", "lane", "model", "effort", "schedule", "pin_conflict")
 
+DEFAULT_INSTRUCTION = "Choose the crew configuration for the task below."
+
+DEFAULT_RESPONSE_FIELDS = (
+    '"delegate": true or false',
+    '"lane": "claude" or "codex"',
+    '"model": "runtime model name" or null',
+    '"effort": "runtime effort name" or null',
+    '"schedule": "parent", "single", "parallel", or "sequential"',
+    '"pin_conflict": true or false',
+)
+
+DEFAULT_RESPONSE_NOTE = (
+    'Set "pin_conflict" true when the task pins a lane, model, or effort '
+    "that overshoots or misses the floor you would otherwise pick, and name "
+    "that floor in the rationale. Set it false otherwise."
+)
+
+
+def suite_graded_fields(suite: dict[str, Any]) -> tuple[str, ...]:
+    """Fields this suite grades, defaulting to the crew-selection set."""
+    configured = suite.get("graded_fields")
+    return tuple(configured) if configured else GRADED_FIELDS
+
 
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text())
@@ -34,14 +57,18 @@ def load_responses(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in text.splitlines() if line.strip()]
 
 
-def grade_case(case: dict[str, Any], response: dict[str, Any]) -> list[str]:
+def grade_case(
+    case: dict[str, Any],
+    response: dict[str, Any],
+    fields: tuple[str, ...] = GRADED_FIELDS,
+) -> list[str]:
     errors: list[str] = []
     if response.get("provider_error"):
         errors.append(f"provider_error: {response['provider_error']}")
     if response.get("case_id") != case["id"]:
         errors.append(f"case_id: expected {case['id']!r}, got {response.get('case_id')!r}")
 
-    for field in GRADED_FIELDS:
+    for field in fields:
         if field not in case.get("expected", {}):
             continue
         configured = case["expected"][field]
@@ -89,7 +116,7 @@ def grade_suite(
     for case_id, case in cases.items():
         if case_id not in response_map:
             continue
-        errors = grade_case(case, response_map[case_id])
+        errors = grade_case(case, response_map[case_id], suite_graded_fields(suite))
         results.append({"case_id": case_id, "passed": not errors, "errors": errors})
 
     passed = (
@@ -144,32 +171,29 @@ def render_prompt(
     if mode not in {"control", "skill"}:
         raise ValueError("mode must be 'control' or 'skill'")
 
-    sections = [
-        "Choose the crew configuration for the task below.",
-        f"Runtime constraints:\n{json.dumps(case.get('runtime', {}), indent=2)}",
-        f"Task:\n{case['prompt']}",
-    ]
+    sections = [suite.get("instruction") or DEFAULT_INSTRUCTION]
+    runtime = case.get("runtime")
+    if runtime is not None:
+        sections.append(f"Runtime constraints:\n{json.dumps(runtime, indent=2)}")
+    sections.append(f"Task:\n{case['prompt']}")
+
     if mode == "skill":
         sections.append(f"Apply this skill exactly:\n\n{skill_text}")
     else:
         sections.append("Control run: make the decision without reading or invoking any skill.")
 
-    sections.append(
+    fields = suite.get("response_fields") or DEFAULT_RESPONSE_FIELDS
+    lines = [f'  "case_id": {json.dumps(case["id"])},']
+    lines.extend(f"  {field}," for field in fields)
+    lines.append('  "rationale": "one concise sentence"')
+    contract = (
         "Return one JSON object and no surrounding prose with these fields:\n"
-        "{\n"
-        f'  "case_id": {json.dumps(case["id"])},\n'
-        '  "delegate": true or false,\n'
-        '  "lane": "claude" or "codex",\n'
-        '  "model": "runtime model name" or null,\n'
-        '  "effort": "runtime effort name" or null,\n'
-        '  "schedule": "parent", "single", "parallel", or "sequential",\n'
-        '  "pin_conflict": true or false,\n'
-        '  "rationale": "one concise sentence"\n'
-        "}\n"
-        "Set \"pin_conflict\" true when the task pins a lane, model, or effort "
-        "that overshoots or misses the floor you would otherwise pick, and name "
-        "that floor in the rationale. Set it false otherwise."
+        "{\n" + "\n".join(lines) + "\n}\n"
     )
+    note = suite.get("response_note", DEFAULT_RESPONSE_NOTE)
+    if note:
+        contract += note
+    sections.append(contract)
     return "\n\n".join(sections)
 
 
@@ -271,6 +295,7 @@ def run_command(args: argparse.Namespace) -> int:
         model=args.model,
         effort=args.effort,
         cwd=repo_root,
+        schema=suite.get("response_schema"),
     )
     runs = run_suite(
         suite,

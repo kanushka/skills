@@ -1,0 +1,211 @@
+{
+  "skill": "babysit-pr",
+  "skill_path": "skills/babysit-pr/SKILL.md",
+  "instruction": "Decide how to answer the pull request review state below. Report the pass you would perform.",
+  "graded_fields": [
+    "answer_count",
+    "pr_comment",
+    "comment_parts",
+    "gate_line",
+    "code_change",
+    "loop_done",
+    "resolve_conflict"
+  ],
+  "response_fields": [
+    "\"answer_count\": number of inline review threads you reply to on this pass",
+    "\"pr_comment\": true if you post a PR-level comment, false otherwise",
+    "\"comment_parts\": number of parts in that PR-level comment, or null when you post none",
+    "\"gate_line\": true if any artifact you post to the PR states the test-gate result, false otherwise",
+    "\"code_change\": true if this pass changes code, false otherwise",
+    "\"loop_done\": true if the loop terminates after this pass, false if another pass follows",
+    "\"resolve_conflict\": true if you resolve a merge conflict during this pass, false if there is none to resolve"
+  ],
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "case_id": { "type": "string" },
+      "answer_count": { "type": "integer" },
+      "pr_comment": { "type": "boolean" },
+      "comment_parts": { "type": ["integer", "null"] },
+      "gate_line": { "type": "boolean" },
+      "code_change": { "type": "boolean" },
+      "loop_done": { "type": "boolean" },
+      "resolve_conflict": { "type": "boolean" },
+      "rationale": { "type": "string" }
+    },
+    "required": [
+      "case_id",
+      "answer_count",
+      "pr_comment",
+      "comment_parts",
+      "gate_line",
+      "code_change",
+      "loop_done",
+      "resolve_conflict",
+      "rationale"
+    ],
+    "additionalProperties": false
+  },
+  "response_note": "A pass that produces a commit or a reply is followed by another pass, because pushing moves the head and invites a fresh review. Count a PR-level comment's parts as its top-level blocks: an opening line, a bullet list, and a pushback paragraph are three.",
+  "cases": [
+    {
+      "id": "review-body-nitpicks",
+      "prompt": "CodeRabbit reviewed the PR. Three inline threads are unresolved, each carrying a finding you have verified as correct. Its review body also has a 'Nitpick comments (5)' section: five further findings that exist only in that body and have no thread. All five are correct. You fix all eight findings, batch them into two commits, and the test gate passes.",
+      "expected": {
+        "answer_count": 3,
+        "pr_comment": true,
+        "comment_parts": [2, 3],
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "acknowledged-threads",
+      "prompt": "Four inline threads exist. The last comment on each is from coderabbitai, reading 'confirmed' and carrying a <!-- <review_comment_addressed> --> marker. The review bodies and PR conversation contain nothing posted since your last push. You have already replied to all four in an earlier pass.",
+      "expected": {
+        "answer_count": 0,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": false,
+        "loop_done": true
+      }
+    },
+    {
+      "id": "copilot-overview-only",
+      "prompt": "copilot-pull-request-reviewer submitted a review. Its body is a 'Pull request overview' section summarising what the PR changes, and asks for nothing. Two of its inline threads are unresolved and each carries a finding you have verified as correct. You fix both; the test gate passes.",
+      "expected": {
+        "answer_count": 2,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "human-loose-comment",
+      "prompt": "A human reviewer left no inline threads. They dropped one finding as a plain comment on the PR conversation: the retry helper swallows the context cancellation. You check the code, agree, and fix it. The test gate passes.",
+      "expected": {
+        "answer_count": 0,
+        "pr_comment": true,
+        "comment_parts": [2, 3],
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "human-changes-requested-prose",
+      "prompt": "A human reviewer requested changes. Their review body is prose carrying two findings that have no thread of their own, and they also opened one inline thread with a third finding. You verify all three, agree with all three, and fix them. The test gate passes.",
+      "expected": {
+        "answer_count": 1,
+        "pr_comment": true,
+        "comment_parts": [2, 3],
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "outdated-thread-live-finding",
+      "prompt": "One unresolved inline thread is marked isOutdated: the lines it points at have moved since the review. You read the code as it stands now and the finding still holds. Nothing else is open. You fix it; the test gate passes.",
+      "expected": {
+        "answer_count": 1,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "outdated-thread-already-fixed",
+      "prompt": "One unresolved inline thread is marked isOutdated. Reading the code as it stands, the finding was already resolved by commit 4c444d1, pushed after the review. Nothing else is open.",
+      "expected": {
+        "answer_count": 1,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": false,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "invalid-bot-finding",
+      "prompt": "One unresolved inline thread holds a bot finding: it says the config loader should default the timeout to 30s. The repository's own ADR documents that this loader must leave the timeout unset so the caller's default wins, and the code matches the ADR. Nothing else is open.",
+      "expected": {
+        "answer_count": 1,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": false,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "gate-recap-pressure",
+      "prompt": "CodeRabbit's review body carried five nitpick findings with no thread. You verified and fixed all five and pushed as 607c17e1. You ran make test, make typecheck, make lint, and make license-check, and all four pass. Six inline threads were fixed in the same push and already have threaded replies quoting that sha. The review body also warns that docstring coverage is under 80%; you checked, and that threshold is not a repository gate.",
+      "expected": {
+        "answer_count": 0,
+        "pr_comment": true,
+        "comment_parts": 3,
+        "gate_line": false,
+        "code_change": false,
+        "loop_done": false
+      }
+    },
+    {
+      "id": "conflicting-branch",
+      "prompt": "gh pr view reports mergeable CONFLICTING: the branch conflicts with its base in two files neither reviewer has commented on. Two unresolved inline threads carry findings you have verified as correct and can fix without touching the conflicted files. The test gate passes after your fixes. The resolving-merge-conflicts skill is installed and available.",
+      "expected": {
+        "answer_count": 2,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false,
+        "resolve_conflict": true
+      }
+    },
+    {
+      "id": "conflict-waits-for-the-replies",
+      "prompt": "gh pr view reports mergeable CONFLICTING. Three unresolved inline threads carry findings you have verified as correct, and one of them is in a file that also has a conflict hunk. You have not yet fixed anything or replied to anything on this pass. The resolving-merge-conflicts skill is installed and available. Decide what this pass does and in what order.",
+      "expected": {
+        "answer_count": 3,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false,
+        "resolve_conflict": true
+      }
+    },
+    {
+      "id": "conflict-without-the-sub-skill",
+      "prompt": "gh pr view reports mergeable CONFLICTING in two files. Two unresolved inline threads carry findings you have verified as correct and can fix without touching the conflicted files; the test gate passes after your fixes. No merge-conflict skill is installed in this environment: resolving-merge-conflicts is not available to you.",
+      "expected": {
+        "answer_count": 2,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": true,
+        "loop_done": false,
+        "resolve_conflict": false
+      }
+    },
+    {
+      "id": "own-last-word",
+      "prompt": "Three inline threads are unresolved. The last comment on each is yours, posted in an earlier pass of this skill, and the reviewer has not answered since. The review bodies and PR conversation hold nothing new.",
+      "expected": {
+        "answer_count": 0,
+        "pr_comment": false,
+        "comment_parts": null,
+        "gate_line": false,
+        "code_change": false,
+        "loop_done": true
+      }
+    }
+  ]
+}

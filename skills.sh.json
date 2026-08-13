@@ -1,0 +1,21 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Crew selection",
+      "description": "Choose whether to delegate work, which subagent model and reasoning effort to use, and whether subagents can run in parallel.",
+      "skills": ["pick-claude-crew", "pick-codex-crew"]
+    },
+    {
+      "title": "Pull requests",
+      "description": "Get a pull request from opened to merged — verify each review finding, fix what is right, reply to all of it.",
+      "skills": ["babysit-pr"]
+    },
+    {
+      "title": "Experimental",
+      "description": "Still under test. Usable, but the behaviour may change.",
+      "skills": ["pick-crew"]
+    }
+  ]
+}

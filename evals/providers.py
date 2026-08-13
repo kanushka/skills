@@ -38,7 +38,9 @@ OUTPUT_SCHEMA = {
 }
 
 
-def build_claude_command(*, model: str, effort: str) -> list[str]:
+def build_claude_command(
+    *, model: str, effort: str, schema: dict[str, Any] = OUTPUT_SCHEMA
+) -> list[str]:
     return [
         "claude",
         "-p",
@@ -49,7 +51,7 @@ def build_claude_command(*, model: str, effort: str) -> list[str]:
         "--output-format",
         "json",
         "--json-schema",
-        json.dumps(OUTPUT_SCHEMA, separators=(",", ":")),
+        json.dumps(schema, separators=(",", ":")),
         "--model",
         model,
         "--effort",
@@ -122,9 +124,16 @@ def parse_codex_output(text: str) -> dict[str, Any]:
     return _parse_json_object(text)
 
 
-def run_claude(prompt: str, *, model: str, effort: str, cwd: Path) -> dict[str, Any]:
+def run_claude(
+    prompt: str,
+    *,
+    model: str,
+    effort: str,
+    cwd: Path,
+    schema: dict[str, Any] = OUTPUT_SCHEMA,
+) -> dict[str, Any]:
     completed = subprocess.run(
-        build_claude_command(model=model, effort=effort),
+        build_claude_command(model=model, effort=effort, schema=schema),
         cwd=cwd,
         input=prompt,
         capture_output=True,
@@ -137,12 +146,19 @@ def run_claude(prompt: str, *, model: str, effort: str, cwd: Path) -> dict[str, 
     return parse_claude_output(completed.stdout)
 
 
-def run_codex(prompt: str, *, model: str, effort: str, cwd: Path) -> dict[str, Any]:
+def run_codex(
+    prompt: str,
+    *,
+    model: str,
+    effort: str,
+    cwd: Path,
+    schema: dict[str, Any] = OUTPUT_SCHEMA,
+) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="crew-eval-codex-") as temp_dir:
         temp_path = Path(temp_dir)
         schema_path = temp_path / "schema.json"
         output_path = temp_path / "output.json"
-        schema_path.write_text(json.dumps(OUTPUT_SCHEMA))
+        schema_path.write_text(json.dumps(schema))
         completed = subprocess.run(
             build_codex_command(
                 model=model,
@@ -172,9 +188,11 @@ def run_provider(
     model: str,
     effort: str,
     cwd: Path,
+    schema: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    schema = schema or OUTPUT_SCHEMA
     if provider == "claude":
-        return run_claude(prompt, model=model, effort=effort, cwd=cwd)
+        return run_claude(prompt, model=model, effort=effort, cwd=cwd, schema=schema)
     if provider == "codex":
-        return run_codex(prompt, model=model, effort=effort, cwd=cwd)
+        return run_codex(prompt, model=model, effort=effort, cwd=cwd, schema=schema)
     raise ValueError(f"unsupported provider: {provider}")
