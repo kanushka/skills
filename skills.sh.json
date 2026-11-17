@@ -9,8 +9,8 @@
     },
     {
       "title": "Pull requests",
-      "description": "Get a pull request from opened to merged — verify each review finding, fix what is right, reply to all of it.",
-      "skills": ["babysit-pr"]
+      "description": "Get a pull request from opened to merged — review it like a busy human, verify each review finding, fix what is right, reply to all of it.",
+      "skills": ["babysit-pr", "lgtm-ish"]
     },
     {
       "title": "Experimental",

@@ -1,10 +1,11 @@
 # Pull requests
 
-Skills for getting a pull request from opened to merged.
+Skills for reviewing a pull request and getting it from opened to merged.
 
 | Skill | Runs in | Purpose |
 |---|---|---|
 | `babysit-pr` | Any agent with skills support | Takes every open review thread on a PR to answered — from a human, CodeRabbit, or Copilot. |
+| `lgtm-ish` | Claude Code | Reviews a PR with parallel subagents and writes the verified findings as short, plain comments a busy human would leave. |
 
 ## `babysit-pr`
 
@@ -54,3 +55,47 @@ conflict in its report, but leaves the branch untouched.
 
 Thirteen graded cases in `evals/cases/babysit-pr.json`, run through the shared
 harness. See [TESTING.md](../TESTING.md).
+
+## `lgtm-ish`
+
+A PR review that reads like a teammate wrote it. Subagents find and verify the
+issues; the comments come out as one or two plain sentences each, with no fix
+suggestions, no summary, and uncertain issues asked as questions.
+
+Adapted from Anthropic's
+[`code-review`](https://github.com/anthropics/claude-code/tree/main/plugins/code-review)
+plugin (Apache-2.0). The review pipeline is the same by default; the output
+style, the `--deep` mode, and the gate (skip a PR you already reviewed) are new.
+
+### Modes
+
+- **Default:** the original pipeline. A gate check, a summary, two CLAUDE.md
+  reviewers and two Opus bug reviewers in parallel, then a validator per issue.
+- **`--deep`:** focused Opus finders — cross-layer contracts, error paths, and
+  logic and security — that report every suspicion, then a "what did they
+  miss?" pass. Validators are the only filter. Slower, catches more.
+
+Results come back in chat as a numbered list (🐛 confirmed, ❓ plausible) so you
+can follow up on any one. Without `--comment` nothing touches GitHub. With it,
+each comment is posted inline on its line, emoji-free, or the PR is approved if
+nothing survived.
+
+### Invoking
+
+```
+/lgtm-ish 123
+/lgtm-ish https://github.com/owner/repo/pull/123 --deep --comment
+```
+
+It only runs when invoked; the model never starts it on its own.
+
+### Requirements
+
+Claude Code, for its subagents and per-agent model choice, and the
+[`gh` CLI](https://cli.github.com/) authenticated against the PR's repo.
+
+### Install
+
+```bash
+npx skills add kanushka/skills --skill lgtm-ish --agent claude-code
+```
