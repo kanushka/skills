@@ -10,7 +10,7 @@
     },
     {
       "name": "pull-requests",
-      "skills": ["./skills/babysit-pr"]
+      "skills": ["./skills/babysit-pr", "./skills/lgtm-ish"]
     }
   ]
 }
