@@ -87,7 +87,7 @@ nothing survived.
 /lgtm-ish https://github.com/owner/repo/pull/123 --deep --comment
 ```
 
-It only runs when invoked; the model never starts it on its own.
+It only runs when invoked; the model never starts it on its own. In the Claude desktop app it also renames the session to `🔍 #<PR> <short title>`, so reviews are easy to find in the sidebar.
 
 ### Requirements
 

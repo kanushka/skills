@@ -3,7 +3,7 @@ name: lgtm-ish
 description: Review a GitHub pull request with parallel subagents and verified, high-signal findings, then write them as short, plain, human-style inline comments. Use when the user runs /lgtm-ish with a PR number or URL.
 argument-hint: <PR number or URL> [--comment] [--deep]
 disable-model-invocation: true
-allowed-tools: Bash(gh issue view:*), Bash(gh search:*), Bash(gh issue list:*), Bash(gh pr comment:*), Bash(gh pr review:*), Bash(gh pr diff:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api:*), Bash(git rev-parse:*), mcp__github_inline_comment__create_inline_comment
+allowed-tools: Bash(gh issue view:*), Bash(gh search:*), Bash(gh issue list:*), Bash(gh pr comment:*), Bash(gh pr review:*), Bash(gh pr diff:*), Bash(gh pr view:*), Bash(gh pr list:*), Bash(gh api:*), Bash(git rev-parse:*), mcp__github_inline_comment__create_inline_comment, mcp__ccd_session_mgmt__set_session_title
 ---
 
 Review the pull request: $ARGUMENTS
@@ -21,6 +21,8 @@ Flags:
 The orchestrator does not read code itself. All code reading happens inside subagents.
 
 ## Review pipeline
+
+0. Name the session so it's easy to find later. Get the PR title with `gh pr view <PR> --json number,title`, then, if the `mcp__ccd_session_mgmt__set_session_title` tool exists (Claude desktop app), call it with `session_id: "self"` and `title: "🔍 #<number> <PR title cut to ~5 words>"`, e.g. `🔍 #2853 Delete project once empty`. If the tool is missing or refuses, skip silently.
 
 1. Launch a haiku agent to check if any of the following are true:
    - The pull request is closed
