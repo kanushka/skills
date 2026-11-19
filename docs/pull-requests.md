@@ -80,6 +80,10 @@ can follow up on any one. Without `--comment` nothing touches GitHub. With it,
 each comment is posted inline on its line, emoji-free, or the PR is approved if
 nothing survived.
 
+Issues someone else (a human or a bot like CodeRabbit) already raised are not
+posted again; they show in chat as 💬 already flagged. The PR is only approved
+when nobody has open findings.
+
 ### Invoking
 
 ```
