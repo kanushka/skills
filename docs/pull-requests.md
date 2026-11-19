@@ -80,6 +80,10 @@ can follow up on any one. Without `--comment` nothing touches GitHub. With it,
 each comment is posted inline on its line, emoji-free, or the PR is approved if
 nothing survived.
 
+Issues someone else (a human or a bot like CodeRabbit) already raised are not
+posted again; they show in chat as 💬 already flagged. The PR is only approved
+when nobody has open findings.
+
 ### Invoking
 
 ```
@@ -87,7 +91,7 @@ nothing survived.
 /lgtm-ish https://github.com/owner/repo/pull/123 --deep --comment
 ```
 
-It only runs when invoked; the model never starts it on its own.
+It only runs when invoked; the model never starts it on its own. In the Claude desktop app it also renames the session to `🔍 #<PR> <short title>`, so reviews are easy to find in the sidebar.
 
 ### Requirements
 
