@@ -6,7 +6,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from evals.crew_eval import (
+from evals.skill_eval import (
+    load_skill_text,
     GRADED_FIELDS,
     grade_case,
     grade_repetitions,
@@ -396,7 +397,7 @@ class RunSuiteTests(unittest.TestCase):
     def test_direct_cli_entry_point_runs_from_repo_root(self):
         repo_root = Path(__file__).resolve().parent.parent
         completed = subprocess.run(
-            [sys.executable, "evals/crew_eval.py", "run", "--help"],
+            [sys.executable, "evals/skill_eval.py", "run", "--help"],
             cwd=repo_root,
             capture_output=True,
             text=True,
@@ -451,7 +452,7 @@ class RunSuiteTests(unittest.TestCase):
                 })()
 
             failing_response = {"case_id": "case-1", "delegate": False, "rationale": "no"}
-            with patch("evals.crew_eval.run_provider", return_value=failing_response):
+            with patch("evals.skill_eval.run_provider", return_value=failing_response):
                 self.assertEqual(1, run_command(arguments(False)))
                 self.assertEqual(0, run_command(arguments(True)))
 
@@ -481,7 +482,7 @@ class RunSuiteTests(unittest.TestCase):
                 "allow_fail": False,
             })()
 
-            with patch("evals.crew_eval.run_provider") as provider:
+            with patch("evals.skill_eval.run_provider") as provider:
                 with self.assertRaisesRegex(ValueError, "must be a child"):
                     run_command(args)
                 provider.assert_not_called()
@@ -559,6 +560,43 @@ class OutputSchemaTests(unittest.TestCase):
 
     def test_schema_still_forbids_unknown_properties(self):
         self.assertFalse(OUTPUT_SCHEMA["additionalProperties"])
+
+
+class SkillTextTests(unittest.TestCase):
+    def test_extra_paths_are_appended_under_their_names(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text("main")
+            (root / "deep.md").write_text("deep body")
+            text = load_skill_text(root, {"skill_path": "SKILL.md", "skill_extra_paths": ["deep.md"]})
+        self.assertEqual("main\n\n--- deep.md ---\ndeep body", text)
+
+    def test_single_path_is_unchanged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "SKILL.md").write_text("main")
+            self.assertEqual("main", load_skill_text(root, {"skill_path": "SKILL.md"}))
+
+
+class LgtmIshSuiteTests(unittest.TestCase):
+    def setUp(self):
+        self.suite = json.loads((Path(__file__).parent / "cases" / "lgtm-ish.json").read_text())
+
+    def test_expected_fields_are_graded_and_in_schema(self):
+        graded = set(self.suite["graded_fields"])
+        schema = set(self.suite["response_schema"]["properties"])
+        for case in self.suite["cases"]:
+            self.assertLessEqual(set(case["expected"]), graded, case["id"])
+        self.assertLessEqual(graded, schema)
+
+    def test_case_ids_are_unique(self):
+        ids = [case["id"] for case in self.suite["cases"]]
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_skill_files_exist(self):
+        root = Path(__file__).parent.parent
+        for rel in [self.suite["skill_path"], *self.suite["skill_extra_paths"]]:
+            self.assertTrue((root / rel).is_file(), rel)
 
 
 if __name__ == "__main__":

@@ -232,11 +232,17 @@ def repo_root_for_cases(cases_path: Path) -> Path:
     return cases_path.resolve().parent.parent.parent
 
 
+def load_skill_text(repo_root: Path, suite: dict[str, Any]) -> str:
+    parts = [(repo_root / suite["skill_path"]).read_text()]
+    for extra in suite.get("skill_extra_paths", []):
+        parts.append(f"--- {Path(extra).name} ---\n" + (repo_root / extra).read_text())
+    return "\n\n".join(parts)
+
+
 def render_command(args: argparse.Namespace) -> int:
     cases_path = Path(args.cases)
     suite = load_json(cases_path)
-    skill_path = repo_root_for_cases(cases_path) / suite["skill_path"]
-    skill_text = skill_path.read_text()
+    skill_text = load_skill_text(repo_root_for_cases(cases_path), suite)
     rendered = [
         {
             "case_id": case["id"],
@@ -288,7 +294,7 @@ def run_command(args: argparse.Namespace) -> int:
 
     repo_root = repo_root_for_cases(cases_path)
     output_dir = validated_output_dir(args.output_dir, repo_root)
-    skill_text = (repo_root / suite["skill_path"]).read_text()
+    skill_text = load_skill_text(repo_root, suite)
     runner = lambda prompt: run_provider(
         args.provider,
         prompt,

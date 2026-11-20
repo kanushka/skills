@@ -1,0 +1,387 @@
+{
+  "skill": "lgtm-ish",
+  "skill_path": "skills/lgtm-ish/SKILL.md",
+  "skill_extra_paths": [
+    "skills/lgtm-ish/deep.md",
+    "skills/lgtm-ish/re-review.md"
+  ],
+  "instruction": "Decide the outcome of one /lgtm-ish run on the pull request state below. Subagent results are given; report what the run reports and posts.",
+  "graded_fields": [
+    "stop_reason",
+    "review_mode",
+    "chat_items",
+    "inline_comments",
+    "question_comments",
+    "already_flagged",
+    "open_earlier",
+    "approve"
+  ],
+  "response_fields": [
+    "\"stop_reason\": why the run stops before reviewing — \"closed\", \"draft\", \"bot_or_docs\", \"no_new_commits\" — or null if it reviews",
+    "\"review_mode\": \"first\" for a first review, \"re_review\" for a re-review (including a re-review that stops with no new commits), or null if the run stopped at the gate (step 1)",
+    "\"chat_items\": number of numbered issue items in the chat reply (new issues plus already-flagged ones; earlier-comment status lines don't count)",
+    "\"inline_comments\": number of inline comments posted to GitHub",
+    "\"question_comments\": number of issue comments (posted or printed) worded as a question",
+    "\"already_flagged\": number of issues shown as already flagged by someone else",
+    "\"open_earlier\": number of the user's earlier comments reported as still open",
+    "\"approve\": true if the run submits an approving review, false otherwise"
+  ],
+  "response_note": "Without --comment nothing is posted to GitHub, so inline_comments is 0 and approve is false.",
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "case_id": {
+        "type": "string"
+      },
+      "stop_reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "closed",
+          "draft",
+          "bot_or_docs",
+          "no_new_commits",
+          null
+        ]
+      },
+      "review_mode": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "first",
+          "re_review",
+          null
+        ]
+      },
+      "chat_items": {
+        "type": "integer"
+      },
+      "inline_comments": {
+        "type": "integer"
+      },
+      "question_comments": {
+        "type": "integer"
+      },
+      "already_flagged": {
+        "type": "integer"
+      },
+      "open_earlier": {
+        "type": "integer"
+      },
+      "approve": {
+        "type": "boolean"
+      },
+      "rationale": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "case_id",
+      "stop_reason",
+      "review_mode",
+      "chat_items",
+      "inline_comments",
+      "question_comments",
+      "already_flagged",
+      "open_earlier",
+      "approve",
+      "rationale"
+    ],
+    "additionalProperties": false
+  },
+  "cases": [
+    {
+      "id": "gate-closed",
+      "prompt": "Run: /lgtm-ish 41 --comment. The PR is closed (merged yesterday).",
+      "expected": {
+        "stop_reason": "closed",
+        "review_mode": null,
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "gate-draft",
+      "prompt": "Run: /lgtm-ish 52. The PR is a draft with a 300-line backend change.",
+      "expected": {
+        "stop_reason": "draft",
+        "review_mode": null,
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "gate-dependabot",
+      "prompt": "Run: /lgtm-ish 63 --comment. The PR is open, authored by dependabot[bot], and bumps one npm dependency in package.json and package-lock.json.",
+      "expected": {
+        "stop_reason": "bot_or_docs",
+        "review_mode": null,
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "gate-docs-only",
+      "prompt": "Run: /lgtm-ish 64 --comment. An open PR by a teammate that only edits README.md and docs/setup.md.",
+      "expected": {
+        "stop_reason": "bot_or_docs",
+        "review_mode": null,
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "clean-approve",
+      "prompt": "Run: /lgtm-ish 70 --comment. Open PR by a teammate, never reviewed by the user. Finders return two suspected issues; validators reject both as pre-existing code. No one else has commented.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "already_flagged": 0,
+        "approve": true
+      }
+    },
+    {
+      "id": "clean-no-flag",
+      "prompt": "Run: /lgtm-ish 71. Open PR by a teammate, never reviewed by the user. Finders return nothing.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "print-only",
+      "prompt": "Run: /lgtm-ish 72. Open PR, never reviewed by the user. Validators confirm two bugs in different files. No other feedback exists.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 2,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "dedupe-same-root-cause",
+      "prompt": "Run: /lgtm-ish 80 --comment. Open PR, never reviewed by the user. Validators confirm two bugs: (a) the retry loop in sync.ts never stops when the server returns 409, and (b) the delete dialog hides archived items the server still counts. coderabbitai already left an inline comment on sync.ts saying 409 responses make the retry loop spin forever.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 2,
+        "inline_comments": 1,
+        "already_flagged": 1,
+        "approve": false
+      }
+    },
+    {
+      "id": "dedupe-same-line-other-cause",
+      "prompt": "Run: /lgtm-ish 81 --comment. Open PR, never reviewed by the user. Validators confirm one bug: handler.go:120 maps a 404 from upstream to 503. copilot-pull-request-reviewer already commented on handler.go:120 that a variable name is misleading.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 1,
+        "inline_comments": 1,
+        "already_flagged": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "only-already-flagged",
+      "prompt": "Run: /lgtm-ish 82 --comment. Open PR, never reviewed by the user. Validators confirm one bug: an unhandled null in parseOrder. A human reviewer, priya, already commented on that line that parseOrder crashes when the order has no items, which is the same null.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 1,
+        "inline_comments": 0,
+        "already_flagged": 1,
+        "approve": false
+      }
+    },
+    {
+      "id": "plausible-as-question",
+      "prompt": "Run: /lgtm-ish 90 --comment. Open PR, never reviewed by the user. Validators return one confirmed bug (an off-by-one in pagination) and one plausible issue (if the upstream API returns items unsorted, the dedupe step drops valid rows; the code can't tell whether upstream sorts). No other feedback.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 2,
+        "inline_comments": 2,
+        "question_comments": 1,
+        "approve": false
+      }
+    },
+    {
+      "id": "vague-maybe-dropped",
+      "prompt": "Run: /lgtm-ish 91 --comment. Open PR, never reviewed by the user. One finder suspects the new cache 'might be slow under heavy load' but names no concrete failure path; the validator rejects it. Nothing else is found.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": true
+      }
+    },
+    {
+      "id": "rereview-no-new-commits",
+      "prompt": "Run: /lgtm-ish 100 --comment. The user reviewed this PR before (COMMENTED at commit abc123). The PR head is still abc123.",
+      "expected": {
+        "stop_reason": "no_new_commits",
+        "review_mode": "re_review",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "rereview-approval-active",
+      "prompt": "Run: /lgtm-ish 101 --comment. The user approved this PR at commit aaa111 with no later review. Two new commits since. Finders return nothing on the new commits. The user has no earlier inline threads.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "open_earlier": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "rereview-earlier-open",
+      "prompt": "Run: /lgtm-ish 102 --comment. The user's latest review is COMMENTED at bbb222 with two inline threads. One new commit since. Finders return nothing new. The earlier-comment agents report one thread fixed in code (solved) and one unchanged with no reply (open).",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "open_earlier": 1,
+        "approve": false
+      }
+    },
+    {
+      "id": "rereview-all-solved",
+      "prompt": "Run: /lgtm-ish 103 --comment. The user's latest review is COMMENTED at ccc333 with one inline thread. Two new commits since. Finders return nothing new. The earlier-comment agent reports the thread solved: the code now handles the empty list.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "open_earlier": 0,
+        "approve": true
+      }
+    },
+    {
+      "id": "rereview-new-issue",
+      "prompt": "Run: /lgtm-ish 104 --comment. The user's latest review is CHANGES_REQUESTED at ddd444 with one inline thread, now solved. One new commit since adds a bug that validators confirm. No other feedback since the base.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 1,
+        "inline_comments": 1,
+        "open_earlier": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "gate-renovate-with-code",
+      "prompt": "Run: /lgtm-ish 65 --comment. Open PR authored by renovate[bot]. It bumps a date library and also edits three call sites in src/ to match the new API.",
+      "expected": {
+        "stop_reason": "bot_or_docs",
+        "review_mode": null,
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "gate-lockfile-only-human",
+      "prompt": "Run: /lgtm-ish 66 --comment. Open PR by a teammate that only regenerates package-lock.json.",
+      "expected": {
+        "stop_reason": "bot_or_docs",
+        "review_mode": null,
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "pre-existing-confirmed",
+      "prompt": "Run: /lgtm-ish 92 --comment. Open PR, never reviewed by the user. A finder reports a real SQL injection in reports.go; the validator confirms the bug exists, but the vulnerable lines are unchanged by this PR and were there before it. Nothing else is found and no one else has commented.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": true
+      }
+    },
+    {
+      "id": "linter-catchable",
+      "prompt": "Run: /lgtm-ish 93 --comment. Open PR, never reviewed by the user. The validator confirms the only finding: a new unused import in api.ts, which the project's ESLint config flags. Nothing else is found.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "first",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "approve": true
+      }
+    },
+    {
+      "id": "rereview-old-feedback-not-dedupe",
+      "prompt": "Run: /lgtm-ish 105 --comment. The user's latest review is COMMENTED at eee555 with no inline threads. One new commit since adds a bug that validators confirm: the new cache key ignores the tenant id. Two weeks ago, before the user's review, coderabbitai commented that the cache key ignores the tenant id; that comment predates the base review and nothing has been posted since.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 1,
+        "inline_comments": 1,
+        "already_flagged": 0,
+        "open_earlier": 0,
+        "approve": false
+      }
+    },
+    {
+      "id": "rereview-merge-only",
+      "prompt": "Run: /lgtm-ish 106 --comment. The user's latest review is COMMENTED at fff666 with no inline threads. The only commit since merges main into the PR branch; it touches files the PR's own commits never touched. A finder flags a confirmed bug in one of those merged-in files.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "open_earlier": 0,
+        "approve": true
+      }
+    },
+    {
+      "id": "rereview-approval-superseded",
+      "prompt": "Run: /lgtm-ish 107 --comment. The user approved at a1a1a1, then later left a COMMENTED review at b2b2b2 with one inline finding. One new commit since. Finders return nothing new. The earlier-comment agent reports that finding solved in code.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "open_earlier": 0,
+        "approve": true
+      }
+    },
+    {
+      "id": "rereview-wontfix-reply",
+      "prompt": "Run: /lgtm-ish 108 --comment. The user's latest review is COMMENTED at c3c3c3 with one inline thread. The author replied 'intended, won't fix' and the code is unchanged; the user never replied. One new commit since touches another file; finders return nothing new.",
+      "expected": {
+        "stop_reason": null,
+        "review_mode": "re_review",
+        "chat_items": 0,
+        "inline_comments": 0,
+        "open_earlier": 1,
+        "approve": false
+      }
+    }
+  ]
+}

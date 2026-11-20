@@ -1,7 +1,7 @@
 # Testing
 
 One harness serves every skill in this repository. A suite declares what it
-grades, so `evals/crew_eval.py` is not limited to the crew-selection fields:
+grades, so `evals/skill_eval.py` is not limited to the crew-selection fields it started with:
 
 | Suite key | Purpose | Default when omitted |
 |---|---|---|
@@ -17,7 +17,7 @@ no model or effort constraints stay clean.
 ## Unit tests
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v evals/test_crew_eval.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v evals/test_skill_eval.py
 ```
 
 ## Eval cases
@@ -54,10 +54,26 @@ without asking but only after the replies are posted, and only when
 and expects the branch left alone. The suite grades the shape of a pass, not the
 `gh` calls that carry it out.
 
+`evals/cases/lgtm-ish.json` grades the PR review skill on twenty-five cases. The
+suite sets `skill_extra_paths`, so `deep.md` and `re-review.md` are pasted in
+after `SKILL.md`. Six cases anchor the gate (closed, draft, a Dependabot bump,
+a Renovate bump that also edits code, docs only, a lockfile only). Seven cover a first review: approving a clean PR only with
+`--comment`, printing without posting, skipping an issue another reviewer
+already raised for the same root cause but not one that only shares a line,
+asking a plausible issue as a question, dropping a vague maybe, and
+rejecting a confirmed bug that is pre-existing or that a linter catches. Nine cover a
+re-review: no new commits, an approval still active, an approval superseded by a
+later review, an earlier thread still open, an author's "won't fix" the user
+never accepted, everything solved, a new bug after a change request, a merge of
+main that brings in unrelated code, and feedback older than the last review that
+must not count as already flagged. Like the others,
+the suite grades the outcome of a run from given subagent results, not the
+subagents themselves, so it measures the orchestration rules, not recall.
+
 Render prompts without calling a provider:
 
 ```bash
-python3 evals/crew_eval.py render \
+python3 evals/skill_eval.py render \
   --cases evals/cases/pick-codex-crew.json \
   --mode skill \
   --output /tmp/pick-codex-crew-prompts.jsonl
@@ -66,7 +82,7 @@ python3 evals/crew_eval.py render \
 Grade captured JSON or JSONL responses:
 
 ```bash
-python3 evals/crew_eval.py grade \
+python3 evals/skill_eval.py grade \
   --cases evals/cases/pick-codex-crew.json \
   --responses /tmp/pick-codex-crew-responses.json
 ```
@@ -78,7 +94,7 @@ The live runner disables persisted sessions and streams prompts over stdin. It p
 Codex:
 
 ```bash
-python3 evals/crew_eval.py run \
+python3 evals/skill_eval.py run \
   --provider codex \
   --cases evals/cases/pick-codex-crew.json \
   --mode skill \
@@ -91,7 +107,7 @@ python3 evals/crew_eval.py run \
 Claude Code:
 
 ```bash
-python3 evals/crew_eval.py run \
+python3 evals/skill_eval.py run \
   --provider claude \
   --cases evals/cases/pick-claude-crew.json \
   --mode skill \
@@ -104,7 +120,7 @@ python3 evals/crew_eval.py run \
 `pick-crew` on Claude Code:
 
 ```bash
-python3 evals/crew_eval.py run \
+python3 evals/skill_eval.py run \
   --provider claude \
   --cases evals/cases/pick-crew.json \
   --mode skill \
@@ -117,7 +133,7 @@ python3 evals/crew_eval.py run \
 `babysit-pr` on Claude Code:
 
 ```bash
-python3 evals/crew_eval.py run \
+python3 evals/skill_eval.py run \
   --provider claude \
   --cases evals/cases/babysit-pr.json \
   --mode skill \
@@ -140,3 +156,25 @@ Check authentication before live runs:
 codex login status
 claude auth status
 ```
+
+## Running every suite
+
+`evals/run.sh` runs the unit tests, then each Claude suite, and prints a pass
+rate per suite with any case below 1.0. Results land in
+`evals/results/<suite>-<mode>/`.
+
+```bash
+evals/run.sh                                  # all Claude suites, skill mode, sonnet/medium, x1
+evals/run.sh lgtm-ish skill sonnet medium 3   # one suite, three repetitions
+evals/run.sh lgtm-ish control                 # no-skill baseline
+```
+
+Arguments are positional: suite (or `all`), mode, model, effort, repetitions.
+The Codex suites need `--provider codex` and are not part of `all`.
+
+## GitHub Actions
+
+`.github/workflows/evals.yml` runs `evals/run.sh` on demand only (Actions →
+Evals → Run workflow), never on push or pull requests. Pick the suite, mode,
+model, effort and repetitions in the form. It needs an `ANTHROPIC_API_KEY`
+repository secret, and uploads `evals/results/` as an artifact.

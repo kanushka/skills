@@ -84,6 +84,14 @@ Issues someone else (a human or a bot like CodeRabbit) already raised are not
 posted again; they show in chat as 💬 already flagged. The PR is only approved
 when nobody has open findings.
 
+### Re-review
+
+If you've reviewed the PR before, the run becomes a re-review: it reviews only
+the PR's own commits since your last review, checks each of your earlier
+threads against the current code (solved or open), and approves only when there
+are no new issues, every earlier thread is solved, and your approval isn't
+already active.
+
 ### Invoking
 
 ```
@@ -103,3 +111,9 @@ Claude Code, for its subagents and per-agent model choice, and the
 ```bash
 npx skills add kanushka/skills --skill lgtm-ish --agent claude-code
 ```
+
+### Testing
+
+Twenty-five graded cases in `evals/cases/lgtm-ish.json`, run through the shared
+harness. They grade the orchestration rules (gate, dedupe, approval, re-review),
+not review recall. See [TESTING.md](../TESTING.md).
