@@ -21,6 +21,7 @@ from evals.skill_eval import (
 from evals.providers import (
     OUTPUT_SCHEMA,
     build_claude_command,
+    claude_env,
     build_codex_command,
     parse_claude_output,
     parse_codex_output,
@@ -597,6 +598,24 @@ class LgtmIshSuiteTests(unittest.TestCase):
         root = Path(__file__).parent.parent
         for rel in [self.suite["skill_path"], *self.suite["skill_extra_paths"]]:
             self.assertTrue((root / rel).is_file(), rel)
+
+
+class ClaudeEnvTests(unittest.TestCase):
+    def test_no_token_command_keeps_the_inherited_environment(self):
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertIsNone(claude_env())
+
+    def test_token_command_sets_auth_token_and_drops_api_key(self):
+        env = {"ANTHROPIC_TOKEN_COMMAND": "echo sk-ant-oat01-test", "ANTHROPIC_API_KEY": "old"}
+        with patch.dict("os.environ", env, clear=True):
+            result = claude_env()
+        self.assertEqual("sk-ant-oat01-test", result["ANTHROPIC_AUTH_TOKEN"])
+        self.assertNotIn("ANTHROPIC_API_KEY", result)
+
+    def test_failing_token_command_raises(self):
+        with patch.dict("os.environ", {"ANTHROPIC_TOKEN_COMMAND": "exit 3"}, clear=True):
+            with self.assertRaises(subprocess.CalledProcessError):
+                claude_env()
 
 
 if __name__ == "__main__":

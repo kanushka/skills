@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -124,6 +125,18 @@ def parse_codex_output(text: str) -> dict[str, Any]:
     return _parse_json_object(text)
 
 
+def claude_env() -> dict[str, str] | None:
+    command = os.environ.get("ANTHROPIC_TOKEN_COMMAND")
+    if not command:
+        return None
+    token = subprocess.run(
+        command, shell=True, capture_output=True, text=True, check=True
+    ).stdout.strip()
+    env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+    env["ANTHROPIC_AUTH_TOKEN"] = token
+    return env
+
+
 def run_claude(
     prompt: str,
     *,
@@ -139,6 +152,7 @@ def run_claude(
         capture_output=True,
         text=True,
         check=False,
+        env=claude_env(),
     )
     if completed.returncode != 0:
         detail = completed.stderr.strip() or completed.stdout.strip()
