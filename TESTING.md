@@ -189,8 +189,12 @@ each OIDC token is single-use, and a minted token lives at most ten minutes.
 Setup:
 
 1. In the Claude Console, Settings → Workload identity → Connect workload →
-   GitHub Actions. Scope the rule to `repo:kanushka/skills:ref:refs/heads/main`
-   with `repository_owner: kanushka`.
+   GitHub Actions. Scope the rule's subject to
+   `repo:kanushka@24244523/skills@1328416541:ref:refs/heads/main`, with claims
+   `repository_id: 1328416541` and `repository_owner_id: 24244523`. This repo's
+   OIDC tokens carry owner and repository IDs in `sub`, so the name-only form
+   `repo:kanushka/skills:...` fails with `match_subject_prefix`. Check the exact
+   `sub` on the Console's Authentication events tab if a run is refused.
 2. Add these as repository variables (not secrets; they are IDs):
    `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID`,
    `ANTHROPIC_SERVICE_ACCOUNT_ID`, and `ANTHROPIC_WORKSPACE_ID` (needed when the
