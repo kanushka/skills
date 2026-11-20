@@ -30,12 +30,19 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   evals:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run evals from main; the Anthropic federation rule only trusts refs/heads/main."
+          exit 1
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
@@ -51,7 +58,11 @@ jobs:
 
       - name: Run evals
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_TOKEN_COMMAND: bash evals/wif_token.sh
+          ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+          ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
         run: >
           bash evals/run.sh
           "${{ inputs.suite }}" "${{ inputs.mode }}" "${{ inputs.model }}"

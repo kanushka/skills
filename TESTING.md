@@ -175,6 +175,26 @@ The Codex suites need `--provider codex` and are not part of `all`.
 ## GitHub Actions
 
 `.github/workflows/evals.yml` runs `evals/run.sh` on demand only (Actions →
-Evals → Run workflow), never on push or pull requests. Pick the suite, mode,
-model, effort and repetitions in the form. It needs an `ANTHROPIC_API_KEY`
-repository secret, and uploads `evals/results/` as an artifact.
+Evals → Run workflow, from `main`), never on push or pull requests. Pick the
+suite, mode, model, effort and repetitions in the form. Results are uploaded as
+an artifact.
+
+It authenticates with
+[Workload Identity Federation](https://platform.claude.com/docs/en/manage-claude/wif-providers/github-actions),
+not an API key. Before every `claude -p` call, `evals/wif_token.sh` fetches a
+fresh GitHub OIDC token, exchanges it for a short-lived Anthropic token, and the
+harness passes that as `ANTHROPIC_AUTH_TOKEN`. A fresh token per call matters:
+each OIDC token is single-use, and a minted token lives at most ten minutes.
+
+Setup:
+
+1. In the Claude Console, Settings → Workload identity → Connect workload →
+   GitHub Actions. Scope the rule to `repo:kanushka/skills:ref:refs/heads/main`
+   with `repository_owner: kanushka`.
+2. Add these as repository variables (not secrets; they are IDs):
+   `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID`,
+   `ANTHROPIC_SERVICE_ACCOUNT_ID`, and `ANTHROPIC_WORKSPACE_ID` (needed when the
+   rule covers more than one workspace).
+3. Don't add an `ANTHROPIC_API_KEY` secret.
+
+Locally, `ANTHROPIC_TOKEN_COMMAND` is unset, so runs use your own `claude` login.
