@@ -154,7 +154,7 @@ def run_codex(
     cwd: Path,
     schema: dict[str, Any] = OUTPUT_SCHEMA,
 ) -> dict[str, Any]:
-    with tempfile.TemporaryDirectory(prefix="crew-eval-codex-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="skill-eval-codex-") as temp_dir:
         temp_path = Path(temp_dir)
         schema_path = temp_path / "schema.json"
         output_path = temp_path / "output.json"

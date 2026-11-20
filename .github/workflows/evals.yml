@@ -1,0 +1,66 @@
+name: Evals
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Suite to run
+        type: choice
+        default: all
+        options: [all, lgtm-ish, babysit-pr, pick-claude-crew, pick-claude-crew-opus, pick-crew]
+      mode:
+        description: With the skill, or the no-skill control baseline
+        type: choice
+        default: skill
+        options: [skill, control]
+      model:
+        description: Claude model
+        type: choice
+        default: sonnet
+        options: [sonnet, opus, haiku]
+      effort:
+        description: Reasoning effort
+        type: choice
+        default: medium
+        options: [low, medium, high]
+      repetitions:
+        description: Repetitions per suite
+        type: number
+        default: 1
+
+permissions:
+  contents: read
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.329
+
+      - name: Run evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: >
+          bash evals/run.sh
+          "${{ inputs.suite }}" "${{ inputs.mode }}" "${{ inputs.model }}"
+          "${{ inputs.effort }}" "${{ inputs.repetitions }}"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ inputs.suite }}-${{ inputs.mode }}-${{ github.run_number }}
+          path: evals/results/
+          if-no-files-found: ignore
